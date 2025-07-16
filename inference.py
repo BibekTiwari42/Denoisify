@@ -11,8 +11,19 @@ from postprocess import waveunet_with_ssbse_postprocess, ssbse_only_postprocess
 def load_model(model_path, device='cpu'):
     """Load trained WaveUNet model"""
     model = WaveUNet(in_ch=1, out_ch=1, depth=5, base_ch=24)
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    
+    # Load checkpoint
+    checkpoint = torch.load(model_path, map_location=device)
+    
+    # Check if checkpoint contains model_state_dict key (full checkpoint)
+    if 'model_state_dict' in checkpoint:
+        model.load_state_dict(checkpoint['model_state_dict'])
+    else:
+        # Direct model weights
+        model.load_state_dict(checkpoint)
+    
     model.to(device)
+    model.eval()  # Set to evaluation mode
     return model
 
 def denoise_audio(input_path, output_path, model_path=None, use_ssbse_only=False, device='cpu'):
@@ -33,9 +44,9 @@ def denoise_audio(input_path, output_path, model_path=None, use_ssbse_only=False
 # Example usage
 if __name__ == "__main__":
     # Set paths
-    input_file = "media/input/noisy_sample.wav"
+    input_file = "media/p232_001.wav"
     output_file = "media/output/denoised_waveunet_ssbse.wav"
-    model_path = "model_training/checkpoints/best_model.pth"  # Update with your model path
+    model_path = "model_training/checkpoints/unet_best.pth"  # Update with your model path
     
     # Choose processing method
     use_gpu = torch.cuda.is_available()
