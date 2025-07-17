@@ -12,7 +12,6 @@ def index(request):
         form = AudioUploadForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES['file']
-            processing_method = request.POST.get('processing_method', 'waveunet_ssbse')
             
             input_path = os.path.join(settings.MEDIA_ROOT, uploaded_file.name)
             output_path = os.path.join(settings.MEDIA_ROOT, "denoised_" + uploaded_file.name)
@@ -22,11 +21,9 @@ def index(request):
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
 
-            # Choose processing method
-            use_ssbse_only = processing_method == 'ssbse_only'
-            
             try:
-                denoise_audio(input_path, output_path, use_ssbse_only=use_ssbse_only)
+                # Always use the full WaveUNet + SSBSE pipeline
+                denoise_audio(input_path, output_path)
                 
                 context['input_audio'] = uploaded_file.name
                 context['output_audio'] = "denoised_" + uploaded_file.name
@@ -49,7 +46,6 @@ def audio_processor(request):
         form = AudioUploadForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES['file']
-            processing_method = request.POST.get('processing_method', 'waveunet_ssbse')
             
             # Create unique filenames to avoid conflicts
             import time
@@ -66,11 +62,8 @@ def audio_processor(request):
                     for chunk in uploaded_file.chunks():
                         destination.write(chunk)
 
-                # Choose processing method
-                use_ssbse_only = processing_method == 'ssbse_only'
-                
-                # Process audio
-                denoise_audio(input_path, output_path, use_ssbse_only=use_ssbse_only)
+                # Always use the full WaveUNet + SSBSE pipeline
+                denoise_audio(input_path, output_path)
                 
                 # Get file sizes for comparison
                 input_size = os.path.getsize(input_path)
@@ -81,7 +74,7 @@ def audio_processor(request):
                     'output_audio': output_filename,
                     'input_size': round(input_size / 1024, 2),  # KB
                     'output_size': round(output_size / 1024, 2),  # KB
-                    'processing_method': 'WaveUNet + SSBSE' if not use_ssbse_only else 'SSBSE Only',
+                    'processing_method': 'WaveUNet + SSBSE',
                     'success': True
                 })
                 
