@@ -22,15 +22,31 @@ model.eval()
 
 def denoise_audio(input_path, output_path, use_ssbse_only=False):
     """
-    Denoise audio using WaveUNet model
+    Denoise audio using WaveUNet + SSBSE pipeline (always both methods)
     """
-    if use_ssbse_only:
-        # For SSBSE only, we'll use a simplified approach
-        # Just copy the file for now as the SSBSE implementation might be incomplete
-        import shutil
-        shutil.copy(input_path, output_path)
-        return
+    # Always use the full pipeline: WaveUNet -> SSBSE post-processing
+    from model_training.postprocess import waveunet_with_ssbse_postprocess
     
+    try:
+        # Use the complete pipeline regardless of use_ssbse_only parameter
+        waveunet_with_ssbse_postprocess(
+            model=model,
+            input_path=input_path,
+            output_path=output_path,
+            device=str(DEVICE)
+        )
+        print(f"✅ Audio denoised using WaveUNet + SSBSE pipeline: {output_path}")
+        
+    except Exception as e:
+        print(f"❌ Error in denoising pipeline: {e}")
+        # Fallback to basic WaveUNet if postprocessing fails
+        print("Falling back to basic WaveUNet processing...")
+        denoise_audio_basic(input_path, output_path)
+
+def denoise_audio_basic(input_path, output_path):
+    """
+    Basic WaveUNet denoising (fallback only)
+    """
     # Load audio
     data, sr = sf.read(input_path)
     waveform = torch.from_numpy(data.astype(np.float32)).unsqueeze(0)  # shape: (1, L)
@@ -56,7 +72,8 @@ def denoise_audio(input_path, output_path, use_ssbse_only=False):
     num_chunks = (original_len - OVERLAP + STEP - 1) // STEP
     pad_len = max(0, num_chunks * STEP + OVERLAP - original_len)
     waveform = torch.nn.functional.pad(waveform, (0, pad_len))
-      # Overlap-add inference
+    
+    # Overlap-add inference
     window = torch.hann_window(SEGMENT_LENGTH).to(DEVICE)
     denoised_audio = torch.zeros_like(waveform)
     normalization = torch.zeros_like(waveform)
@@ -66,10 +83,8 @@ def denoise_audio(input_path, output_path, use_ssbse_only=False):
             start = i * STEP
             end = start + SEGMENT_LENGTH
             chunk = waveform[:, start:end].to(DEVICE)
-            # Model expects 3D tensor: (batch, channels, length)
             input_tensor = chunk.unsqueeze(0)  # shape: (1, 1, SEGMENT_LENGTH)
-            output = model(input_tensor).squeeze(0)  # shape: (1, SEGMENT_LENGTH)
-            output = output.squeeze(0)  # shape: (SEGMENT_LENGTH,)
+            output = model(input_tensor).squeeze(0).squeeze(0)  # shape: (SEGMENT_LENGTH,)
             denoised_audio[:, start:end] += (output * window).unsqueeze(0).cpu()
             normalization[:, start:end] += window.unsqueeze(0).cpu()
     
