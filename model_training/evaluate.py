@@ -1,11 +1,44 @@
 import os
 import glob
-import librosa
 import numpy as np
-import soundfile as sf
+import wave
 import torch
 from model import WaveUNet
 from dataset import ssbse_enhance
+
+# WAV I/O utils
+
+def read_wav(filename, sr=16000):
+    with wave.open(filename, 'rb') as wf:
+        n_channels = wf.getnchannels()
+        sampwidth = wf.getsampwidth()
+        framerate = wf.getframerate()
+        n_frames = wf.getnframes()
+        frames = wf.readframes(n_frames)
+        dtype = np.int16 if sampwidth == 2 else np.uint8
+        samples = np.frombuffer(frames, dtype=dtype)
+        if n_channels > 1:
+            samples = samples[::n_channels]
+        samples = samples.astype(np.float32)
+        # Resample if needed
+        if framerate != sr:
+            duration = len(samples) / framerate
+            new_length = int(duration * sr)
+            samples = np.interp(
+                np.linspace(0, len(samples), new_length, endpoint=False),
+                np.arange(len(samples)),
+                samples
+            ).astype(np.float32)
+        return samples, sr
+
+def write_wav(filename, samples, framerate):
+    samples = np.clip(samples, -1.0, 1.0)
+    samples = (samples * 32767).astype(np.int16)
+    with wave.open(filename, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(framerate)
+        wf.writeframes(samples.tobytes())
 
 # ---------------------- CONFIG ---------------------- #
 CONFIG = {
@@ -26,16 +59,14 @@ def compute_snr(clean, denoised):
     noise = clean - denoised
     return 10 * np.log10(np.sum(clean ** 2) / (np.sum(noise ** 2) + 1e-8))
 
-def compute_segmental_snr(clean, denoised, frame_size=512, hop_size=256):
-    seg_snrs = []
-    for start in range(0, len(clean) - frame_size, hop_size):
-        c = clean[start:start + frame_size]
-        d = denoised[start:start + frame_size]
-        if np.sum(c ** 2) == 0: continue
-        noise = c - d
-        snr = 10 * np.log10(np.sum(c ** 2) / (np.sum(noise ** 2) + 1e-8))
-        seg_snrs.append(snr)
-    return np.mean(seg_snrs)
+def compute_segmental_snr(clean, denoised, frame_length=512):
+    num_frames = len(clean) // frame_length
+    segsnr = 0.0
+    for i in range(num_frames):
+        c = clean[i*frame_length:(i+1)*frame_length]
+        d = denoised[i*frame_length:(i+1)*frame_length]
+        segsnr += compute_snr(c, d)
+    return segsnr / max(num_frames, 1)
 
 # ---------------------- UTILITY ---------------------- #
 def slice_audio(audio, segment_length):
@@ -75,8 +106,8 @@ def evaluate_all():
 
     for idx, (noisy_path, clean_path) in enumerate(zip(noisy_files, clean_files)):
         # Load and preprocess
-        noisy, _ = librosa.load(noisy_path, sr=CONFIG["sr"])
-        clean, _ = librosa.load(clean_path, sr=CONFIG["sr"])
+        noisy, _ = read_wav(noisy_path, sr=CONFIG["sr"])
+        clean, _ = read_wav(clean_path, sr=CONFIG["sr"])
 
         noisy = ssbse_enhance(noisy)
         min_len = min(len(noisy), len(clean))
@@ -98,7 +129,7 @@ def evaluate_all():
 
         if CONFIG["save_output"]:
             out_path = os.path.join(CONFIG["output_dir"], f"denoised_{idx+1}.wav")
-            sf.write(out_path, denoised, CONFIG["sr"])
+            write_wav(out_path, denoised, CONFIG["sr"])
 
     print("\n📊 Final Report")
     print(f"Average SNR: {np.mean(snr_list):.2f} dB")

@@ -1,14 +1,59 @@
 import numpy as np
-import scipy.io.wavfile as wav
 import torch
 import os
+import wave
 
-def ssbse_enhance(signal, frame_length=512, hop_length=256, noise_frames=6, noise_threshold=0.8):
+# WAV I/O utils
+
+def read_wav(filename):
+    with wave.open(filename, 'rb') as wf:
+        n_channels = wf.getnchannels()
+        sampwidth = wf.getsampwidth()
+        framerate = wf.getframerate()
+        n_frames = wf.getnframes()
+        frames = wf.readframes(n_frames)
+        dtype = np.int16 if sampwidth == 2 else np.uint8
+        samples = np.frombuffer(frames, dtype=dtype)
+        if n_channels > 1:
+            samples = samples[::n_channels]
+        samples = samples.astype(np.float32)
+        # Normalize to [-1, 1] for 16-bit PCM
+        if sampwidth == 2:
+            samples = samples / 32768.0
+        return framerate, samples
+
+def write_wav(filename, sr, data):
+    data = np.clip(data, -1.0, 1.0)
+    data_int16 = np.int16(data * 32767)
+    with wave.open(filename, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sr)
+        wf.writeframes(data_int16.tobytes())
+
+# Custom STFT/ISTFT using numpy
+
+def stft(x, nperseg=512, noverlap=256):
+    x = np.pad(x, (0, nperseg - len(x) % nperseg), mode='constant')
+    step = nperseg - noverlap
+    frames = np.lib.stride_tricks.sliding_window_view(x, nperseg)[::step]
+    window = np.hanning(nperseg)
+    return np.fft.rfft(frames * window, axis=1)
+
+def istft(X, nperseg=512, noverlap=256):
+    step = nperseg - noverlap
+    window = np.hanning(nperseg)
+    time_len = (X.shape[0] - 1) * step + nperseg
+    x = np.zeros(time_len)
+    for i, frame in enumerate(X):
+        x[i*step:i*step+nperseg] += np.fft.irfft(frame) * window
+    return x
+
+def ssbse_enhance_frequency_domain(signal, nperseg=512, noverlap=256, noise_frames=6, noise_threshold=0.8):
     """
-    Memory-optimized SSBSE enhancement
+    SSBSE enhancement in frequency domain using STFT
     """
-    # Reduce parameters for memory efficiency
-    if len(signal) < frame_length * noise_frames:
+    if len(signal) < nperseg * noise_frames:
         return signal
     
     # Limit signal length to prevent memory issues
@@ -17,79 +62,94 @@ def ssbse_enhance(signal, frame_length=512, hop_length=256, noise_frames=6, nois
         print(f"Warning: Audio too long ({len(signal)} samples), processing first {max_length} samples")
         signal = signal[:max_length]
     
-    num_frames = 1 + (len(signal) - frame_length) // hop_length
-    frames = np.stack([
-        signal[i * hop_length:i * hop_length + frame_length]
-        for i in range(num_frames)
-    ]).T
-
-    noise_matrix = frames[:, :noise_frames]
+    # Convert to frequency domain using STFT
+    frequencies, times, Zxx = stft(signal, nperseg=nperseg, noverlap=noverlap)
     
-    # Add regularization to avoid singular matrix
-    Rn = np.cov(noise_matrix) + 1e-6 * np.eye(frame_length)
-
-    eigvals, eigvecs = np.linalg.eigh(Rn)
-    idx = np.argsort(eigvals)[::-1]
-    eigvals = eigvals[idx]
-    eigvecs = eigvecs[:, idx]
-
-    # Ensure we don't remove all signal components
-    cumulative_energy = np.cumsum(eigvals) / np.sum(eigvals)
-    rank = min(np.searchsorted(cumulative_energy, noise_threshold) + 1, frame_length - 1)
-
-    E_noise = eigvecs[:, :rank]
-    P_noise = E_noise @ E_noise.T
-    P_signal = np.eye(frame_length) - P_noise
-
-    enhanced_frames = P_signal @ frames
+    # Get magnitude and phase
+    magnitude = np.abs(Zxx)
+    phase = np.angle(Zxx)
     
-    # Proper overlap-add reconstruction
-    enhanced_signal = np.zeros(len(signal))
-    window_count = np.zeros(len(signal))
+    # Apply SSBSE algorithm in frequency domain
+    enhanced_magnitude = np.zeros_like(magnitude)
     
-    for i in range(num_frames):
-        start = i * hop_length
-        end = start + frame_length
-        if end <= len(signal):
-            enhanced_signal[start:end] += enhanced_frames[:, i]
-            window_count[start:end] += 1
+    # Process each frequency bin separately
+    for freq_idx in range(magnitude.shape[0]):
+        freq_frames = magnitude[freq_idx, :]
+        
+        if len(freq_frames) < noise_frames:
+            enhanced_magnitude[freq_idx, :] = freq_frames
+            continue
+            
+        # Estimate noise from first few frames
+        noise_spectrum = freq_frames[:noise_frames]
+        
+        # Create noise covariance matrix for this frequency
+        if len(noise_spectrum) > 1:
+            noise_frames_matrix = np.column_stack([
+                freq_frames[i:i+noise_frames] 
+                for i in range(len(freq_frames) - noise_frames + 1)
+            ])
+            
+            if noise_frames_matrix.shape[1] > 0:
+                # Covariance matrix with regularization
+                Rn = np.cov(noise_frames_matrix) + 1e-6 * np.eye(noise_frames_matrix.shape[0])
+                
+                # Eigenvalue decomposition
+                eigvals, eigvecs = np.linalg.eigh(Rn)
+                idx = np.argsort(eigvals)[::-1]
+                eigvals = eigvals[idx]
+                eigvecs = eigvecs[:, idx]
+                  # Determine noise subspace rank (corrected logic)
+                cumulative_energy = np.cumsum(eigvals) / np.sum(eigvals)
+                # Use smaller eigenvalues for noise subspace (not larger ones)
+                noise_rank = min(np.searchsorted(cumulative_energy, noise_threshold) + 1, len(eigvals) - 2)
+                
+                # Signal subspace projection (corrected)
+                # Keep the signal subspace (larger eigenvalues), remove noise subspace (smaller eigenvalues)
+                E_signal = eigvecs[:, :len(eigvals) - noise_rank]  # Signal subspace
+                P_signal = E_signal @ E_signal.T  # Project onto signal subspace
+                
+                # Apply projection to overlapping frames
+                enhanced_magnitude[freq_idx, :] = np.zeros_like(freq_frames)
+                overlap_count = np.zeros_like(freq_frames)
+                
+                for i in range(len(freq_frames) - noise_frames + 1):
+                    frame_segment = freq_frames[i:i+noise_frames]
+                    enhanced_segment = P_signal @ frame_segment
+                    
+                    # Overlap-add reconstruction
+                    for j, val in enumerate(enhanced_segment):
+                        if i + j < len(freq_frames):
+                            enhanced_magnitude[freq_idx, i + j] += val
+                            overlap_count[i + j] += 1
+                
+                # Normalize by overlap count
+                enhanced_magnitude[freq_idx, :] = np.divide(
+                    enhanced_magnitude[freq_idx, :], overlap_count,
+                    out=freq_frames.copy(), where=overlap_count > 0
+                )
+            else:
+                enhanced_magnitude[freq_idx, :] = freq_frames
+        else:
+            enhanced_magnitude[freq_idx, :] = freq_frames
     
-    # Normalize by overlap count to avoid amplification
-    enhanced_signal = np.divide(enhanced_signal, window_count, 
-                               out=np.zeros_like(enhanced_signal), 
-                               where=window_count!=0)
+    # Reconstruct complex spectrum with enhanced magnitude and original phase
+    enhanced_Zxx = enhanced_magnitude * np.exp(1j * phase)
+    
+    # Convert back to time domain using inverse STFT
+    _, enhanced_signal = istft(enhanced_Zxx, nperseg=nperseg, noverlap=noverlap)
+    
+    # Ensure output length matches input
+    if len(enhanced_signal) > len(signal):
+        enhanced_signal = enhanced_signal[:len(signal)]
+    elif len(enhanced_signal) < len(signal):
+        enhanced_signal = np.pad(enhanced_signal, (0, len(signal) - len(enhanced_signal)), mode='constant')
     
     # Normalize amplitude
     if np.max(np.abs(enhanced_signal)) > 0:
         enhanced_signal = enhanced_signal / np.max(np.abs(enhanced_signal))
     
     return enhanced_signal
-
-def read_wav(filename):
-    """Read WAV file and convert to float32 with memory limits"""
-    sr, data = wav.read(filename)
-    
-    # Convert to float32
-    if data.dtype == np.int16:
-        data = data.astype(np.float32) / 32768
-    elif data.dtype == np.int32:
-        data = data.astype(np.float32) / 2147483648
-    
-    # Limit audio length to prevent memory issues
-    max_samples = 320000  # ~20 seconds at 16kHz
-    if len(data) > max_samples:
-        print(f"Warning: Audio too long, truncating to {max_samples} samples")
-        data = data[:max_samples]
-    
-    return sr, data
-
-def write_wav(filename, sr, data):
-    """Write WAV file, converting from float32 to int16"""
-    # Ensure data is in range [-1, 1]
-    data = np.clip(data, -1.0, 1.0)
-    # Convert to int16
-    data_int16 = np.int16(data * 32767)
-    wav.write(filename, sr, data_int16)
 
 def process_single_chunk(model, audio, device):
     """Process a single audio chunk with WaveUNet - memory optimized"""
@@ -204,14 +264,13 @@ def waveunet_with_ssbse_postprocess(
         else:
             print("Processing single chunk...")
             enhanced_audio = process_single_chunk(model, audio, device)
-        
-        # Apply SSBSE post-processing with reduced parameters
-        print("Applying SSBSE post-processing...")
-        final_result = ssbse_enhance(enhanced_audio, 
-                                   frame_length=512, 
-                                   hop_length=256,
-                                   noise_frames=6,
-                                   noise_threshold=0.8)
+          # Apply SSBSE post-processing in frequency domain
+        print("Applying SSBSE post-processing in frequency domain...")
+        final_result = ssbse_enhance_frequency_domain(enhanced_audio, 
+                                                     nperseg=512, 
+                                                     noverlap=256,
+                                                     noise_frames=6,
+                                                     noise_threshold=0.8)
         
         # Save result
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -230,11 +289,11 @@ def ssbse_only_postprocess(input_path, output_path):
     """
     try:
         sr, audio = read_wav(input_path)
-        enhanced_audio = ssbse_enhance(audio, 
-                                     frame_length=512, 
-                                     hop_length=256,
-                                     noise_frames=6,
-                                     noise_threshold=0.8)
+        enhanced_audio = ssbse_enhance_frequency_domain(audio, 
+                                                       nperseg=512, 
+                                                       noverlap=256,
+                                                       noise_frames=6,
+                                                       noise_threshold=0.8)
         
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         write_wav(output_path, sr, enhanced_audio)

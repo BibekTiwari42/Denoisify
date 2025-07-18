@@ -1,34 +1,48 @@
 import numpy as np
-import scipy.io.wavfile as wav
-import scipy.signal
 import os
+import wave
 
+# WAV I/O utils
 
 def read_wav(filename):
-    sr, data = wav.read(filename)
-    if data.dtype == np.int16:
-        data = data.astype(np.float32) / 32768  # Convert to float in range [-1, 1]
-    return sr, data
-
+    with wave.open(filename, 'rb') as wf:
+        n_channels = wf.getnchannels()
+        sampwidth = wf.getsampwidth()
+        framerate = wf.getframerate()
+        n_frames = wf.getnframes()
+        frames = wf.readframes(n_frames)
+        dtype = np.int16 if sampwidth == 2 else np.uint8
+        samples = np.frombuffer(frames, dtype=dtype)
+        if n_channels > 1:
+            samples = samples[::n_channels]
+        samples = samples.astype(np.float32)
+        # Normalize to [-1, 1] for 16-bit PCM
+        if sampwidth == 2:
+            samples = samples / 32768.0
+        return framerate, samples
 
 def write_wav(filename, sr, data):
-    # Normalize to int16 for saving
-    data = np.int16(data / np.max(np.abs(data)) * 32767)
-    wav.write(filename, sr, data)
+    data = np.clip(data, -1.0, 1.0)
+    data_int16 = np.int16(data * 32767)
+    with wave.open(filename, 'wb') as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(sr)
+        wf.writeframes(data_int16.tobytes())
 
 
 def frame_signal(signal, frame_length, hop_length):
     num_frames = 1 + (len(signal) - frame_length) // hop_length
-    frames = np.stack([signal[i * hop_length:i * hop_length + frame_length]
-                       for i in range(num_frames)])
-    return frames.T  # shape: (frame_length, num_frames)
+    frames = np.stack([signal[i*hop_length:i*hop_length+frame_length] for i in range(num_frames)], axis=1)
+    return frames
 
 
 def overlap_add(frames, hop_length):
     frame_length, num_frames = frames.shape
-    signal = np.zeros(num_frames * hop_length + frame_length)
+    signal_length = (num_frames - 1) * hop_length + frame_length
+    signal = np.zeros(signal_length)
     for i in range(num_frames):
-        signal[i * hop_length:i * hop_length + frame_length] += frames[:, i]
+        signal[i*hop_length:i*hop_length+frame_length] += frames[:, i]
     return signal
 
 

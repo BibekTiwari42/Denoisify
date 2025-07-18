@@ -35,7 +35,7 @@ def get_file_pairs(noisy_dir, clean_dir):
     return noisy_files, clean_files
 
 def train():
-    print("\n🔁 Starting training with WaveUNet + SSBSE...\n")
+    print("\nStarting training with WaveUNet \n")
 
     train_noisy, train_clean = get_file_pairs(CONFIG["train_noisy_dir"], CONFIG["train_clean_dir"])
     valid_noisy, valid_clean = get_file_pairs(CONFIG["valid_noisy_dir"], CONFIG["valid_clean_dir"])
@@ -50,7 +50,7 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=CONFIG["lr"])
     criterion = nn.MSELoss()
 
-    # 🔁 Resume checkpoint if available
+    # Resume checkpoint if available
     start_epoch = 0
     best_val_loss = float("inf")
     if os.path.exists(CONFIG["checkpoint_path"]):
@@ -60,12 +60,12 @@ def train():
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             best_val_loss = checkpoint.get('best_val_loss', float("inf"))
             start_epoch = checkpoint['epoch'] + 1
-            print(f"🔄 Resuming from epoch {start_epoch} with best val loss {best_val_loss:.5f}")
+            print(f"Resuming from epoch {start_epoch} with best val loss {best_val_loss:.5f}")
         else:  # Only state_dict saved (older format)
             model.load_state_dict(checkpoint)
-            print("✅ Loaded model weights (no resume state).")
+            print("Loaded model weights (no resume state).")
 
-    # 🔂 Training loop
+    # Training loop
     for epoch in range(start_epoch, CONFIG["epochs"]):
         start_time = time.time()
         model.train()
@@ -106,9 +106,9 @@ def train():
                 'optimizer_state_dict': optimizer.state_dict(),
                 'best_val_loss': best_val_loss
             }, CONFIG["checkpoint_path"])
-            print("✅ Best model saved.\n")
+            print("Best model saved.\n")
 
-    print("🎉 Training complete.")
+    print("Training complete.")
 
 if __name__ == "__main__":
     train()
