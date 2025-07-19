@@ -4,6 +4,8 @@ import os
 import wave
 import struct
 from model import WaveUNet
+import matplotlib.pyplot as plt
+from denoiser.mmse_stsa import mmse_stsa
 
 # -------- CONFIG --------
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -28,15 +30,32 @@ def read_wav(filename):
         samples = np.frombuffer(frames, dtype=dtype)
         if n_channels > 1:
             samples = samples[::n_channels]
-        return samples.astype(np.float32), framerate
+        samples = samples.astype(np.float32)
+        # Normalize to [-1, 1] range
+        if sampwidth == 2:  # 16-bit audio
+            samples = samples / 32768.0
+        return samples, framerate
 
 def write_wav(filename, samples, framerate):
-    samples = samples.astype(np.int16)
+    # Scale float audio (-1 to 1) to int16 range (-32768 to 32767)
+    samples = np.clip(samples, -1.0, 1.0)  # Clip to prevent overflow
+    samples = (samples * 32767.0).astype(np.int16)
     with wave.open(filename, 'wb') as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(framerate)
         wf.writeframes(samples.tobytes())
+
+def plot_spectrogram(wave, sr, title, filename):
+    plt.figure(figsize=(10, 4))
+    plt.specgram(wave, NFFT=1024, Fs=sr, noverlap=512, cmap='magma')
+    plt.title(title)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Frequency [Hz]')
+    plt.colorbar(label='Intensity [dB]')
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
 
 # -------- WIENER FILTERING FUNCTION --------
 # def wiener_post_process(audio, sample_rate, noise_estimate=None, nperseg=512):
@@ -101,6 +120,8 @@ print(f"Loading audio from {INPUT_AUDIO_PATH}...")
 if not os.path.exists(INPUT_AUDIO_PATH):
     raise FileNotFoundError(f"File not found: {INPUT_AUDIO_PATH}")
 data, sr = read_wav(INPUT_AUDIO_PATH)
+# Plot input spectrogram
+plot_spectrogram(data, sr, 'Input Audio', 'input_spectrogram_inference.png')
 waveform = torch.from_numpy(data.astype(np.float32)).unsqueeze(0)  # shape: (1, L)
 
 if sr != SAMPLE_RATE:
@@ -151,9 +172,40 @@ denoised_audio = denoised_audio[:, :original_len]
 # Optional: match original volume level
 max_amp_input = waveform[:, :original_len].abs().max()
 max_amp_output = denoised_audio.abs().max()
+print(f"Denoised audio amplitude - max: {max_amp_output:.6f}, min: {denoised_audio.min():.6f}")
+print(f"Input audio amplitude - max: {max_amp_input:.6f}")
 if max_amp_output > 0:
     denoised_audio = denoised_audio * (max_amp_input / max_amp_output)
+    print(f"After volume matching - max: {denoised_audio.abs().max():.6f}")
 # -------- SAVE OUTPUT --------
 os.makedirs(os.path.dirname(OUTPUT_AUDIO_PATH), exist_ok=True)
 write_wav(OUTPUT_AUDIO_PATH, denoised_audio.squeeze(0).numpy(), SAMPLE_RATE)
 print(f"✅ Denoised audio saved to: {OUTPUT_AUDIO_PATH}")
+# Plot denoised output spectrogram
+plot_spectrogram(denoised_audio.squeeze(0).numpy(), SAMPLE_RATE, 'Denoised Output', 'denoised_output_spectrogram_inference.png')
+# MMSE-STSA post-processing
+postprocessed_audio = mmse_stsa(
+    denoised_audio.squeeze(0).numpy(),
+    SAMPLE_RATE,
+    Gmin=0.7,  # More signal preserved
+    alpha=0.95,
+    beta=0.95
+)
+# Check for NaNs/Infs and print amplitude stats
+print("MMSE-STSA output: max=", np.max(postprocessed_audio), "min=", np.min(postprocessed_audio))
+print("NaNs:", np.isnan(postprocessed_audio).any(), "Infs:", np.isinf(postprocessed_audio).any())
+# Plot waveform for diagnosis
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 3))
+plt.plot(postprocessed_audio)
+plt.title("MMSE-STSA Output Waveform")
+plt.tight_layout()
+plt.savefig('mmse_stsa_output_waveform_inference.png')
+plt.close()
+if np.max(np.abs(postprocessed_audio)) > 0:
+    postprocessed_audio = postprocessed_audio / np.max(np.abs(postprocessed_audio))
+postprocessed_audio = postprocessed_audio * 0.9  # scale to 90% of full range
+if np.max(np.abs(postprocessed_audio)) < 0.01:
+    print("Warning: MMSE-STSA output waveform is nearly flat (very low amplitude).")
+write_wav('postprocessed_output_mmse_stsa_inference.wav', postprocessed_audio, SAMPLE_RATE)
+plot_spectrogram(postprocessed_audio, SAMPLE_RATE, 'MMSE-STSA Postprocessed Output', 'postprocessed_output_mmse_stsa_spectrogram_inference.png')
