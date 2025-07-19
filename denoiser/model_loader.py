@@ -5,6 +5,8 @@ import numpy as np
 import os
 import wave
 from model_training.model import WaveUNet
+import matplotlib.pyplot as plt
+from denoiser.mmse_stsa import mmse_stsa
 
 CHECKPOINT_PATH = os.path.join("model_training", "checkpoints", "unet_best.pth")
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -28,7 +30,8 @@ def read_wav(filename):
         return samples, framerate
 
 def write_wav(filename, samples, framerate):
-    samples = samples.astype(np.int16)
+    samples = np.clip(samples, -1.0, 1.0)
+    samples = (samples * 32767).astype(np.int16)
     with wave.open(filename, 'wb') as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
@@ -44,12 +47,52 @@ else:
     model.load_state_dict(checkpoint)
 model.eval()
 
-def denoise_audio(input_path, output_path, use_ssbse_only=False):
+def plot_spectrogram(wave, sr, title, filename):
+    plt.figure(figsize=(10, 4))
+    plt.specgram(wave, NFFT=1024, Fs=sr, noverlap=512, cmap='magma')
+    plt.title(title)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Frequency [Hz]')
+    plt.colorbar(label='Intensity [dB]')
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
+
+def plot_waveform(audio, sr, title, filename, color='blue'):
+    """Plot waveform with time axis in seconds and amplitude statistics"""
+    duration = len(audio) / sr
+    time_axis = np.linspace(0, duration, len(audio))
+    
+    plt.figure(figsize=(12, 4))
+    plt.plot(time_axis, audio, color=color, linewidth=0.5)
+    plt.title(title, fontsize=14, fontweight='bold')
+    plt.xlabel('Time [seconds]', fontsize=12)
+    plt.ylabel('Amplitude', fontsize=12)
+    plt.grid(True, alpha=0.3)
+    plt.ylim(-1.1, 1.1)
+    
+    # Add amplitude statistics
+    max_amp = np.max(np.abs(audio))
+    rms = np.sqrt(np.mean(audio**2))
+    plt.text(0.02, 0.95, f'Max: {max_amp:.3f}\nRMS: {rms:.3f}', 
+             transform=plt.gca().transAxes, fontsize=10,
+             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
+    
+    plt.tight_layout()
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
+
+def denoise_audio(input_path, output_path):
     """
     Denoise audio using WaveUNet model - clean working version
     """
     # Load audio
     data, sr = read_wav(input_path)
+    print(f"Input audio stats - Max: {np.max(np.abs(data)):.3f}, RMS: {np.sqrt(np.mean(data**2)):.3f}")
+    
+    # Plot input waveform and spectrogram
+    plot_waveform(data, sr, 'Input Audio Waveform', 'input_waveform.png', 'red')
+    plot_spectrogram(data, sr, 'Input Audio', 'input_spectrogram.png')
     # Convert to mono if stereo (already handled in read_wav)
     waveform = torch.from_numpy(data.astype(np.float32)).unsqueeze(0)  # shape: (1, L)
     SAMPLE_RATE = 16000
@@ -92,10 +135,32 @@ def denoise_audio(input_path, output_path, use_ssbse_only=False):
     max_amp_output = denoised_audio.abs().max()
     if max_amp_output > 0:
         denoised_audio = denoised_audio * (max_amp_input / max_amp_output)
-    # Create output directory if it doesn't exist
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     # Save output
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     write_wav(output_path, denoised_audio.squeeze(0).numpy(), sr)
+    
+    # Plot denoised output waveform and spectrogram
+    denoised_np = denoised_audio.squeeze(0).numpy()
+    print(f"Denoised audio stats - Max: {np.max(np.abs(denoised_np)):.3f}, RMS: {np.sqrt(np.mean(denoised_np**2)):.3f}")
+    plot_waveform(denoised_np, sr, 'WaveUNet Denoised Output', 'denoised_waveform.png', 'green')
+    plot_spectrogram(denoised_np, sr, 'Denoised Output', 'denoised_output_spectrogram.png')
+    # MMSE-STSA post-processing with improved parameters
+    postprocessed_audio = mmse_stsa(
+        denoised_audio.squeeze(0).numpy(),
+        sr,
+        Gmin=0.7,  # More signal preserved
+        alpha=0.95,
+        beta=0.95
+    )
+    if np.max(np.abs(postprocessed_audio)) > 0:
+        postprocessed_audio = postprocessed_audio / np.max(np.abs(postprocessed_audio))
+    postprocessed_audio = postprocessed_audio * 0.9  # scale to 90% of full range
+    
+    print(f"Post-processed audio stats - Max: {np.max(np.abs(postprocessed_audio)):.3f}, RMS: {np.sqrt(np.mean(postprocessed_audio**2)):.3f}")
+    
+    write_wav('postprocessed_output_mmse_stsa.wav', postprocessed_audio, sr)
+    plot_waveform(postprocessed_audio, sr, 'MMSE-STSA Post-Processed Output', 'postprocessed_waveform.png', 'blue')
+    plot_spectrogram(postprocessed_audio, sr, 'MMSE-STSA Postprocessed Output', 'postprocessed_output_mmse_stsa_spectrogram.png')
     return denoised_audio.squeeze(0).numpy(), sr
 
 def autocorrelation_pitch(waveform, sr, fmin=80, fmax=400):
