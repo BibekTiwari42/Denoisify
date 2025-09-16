@@ -13,6 +13,165 @@
       body {
         font-family: "Inter", sans-serif;
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      /* Light theme */
+      body.light-theme {
+        background: linear-gradient(
+          135deg,
+          #fafbff 0%,
+          #f1f5f9 25%,
+          #e2e8f0 50%,
+          #f8fafc 75%,
+          #ffffff 100%
+        ) !important;
+        color: #1e293b !important;
+      }
+
+      body.light-theme .glass-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1),
+          0 8px 25px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 24px !important;
+      }
+
+      body.light-theme .text-white {
+        color: #1e293b !important;
+      }
+
+      body.light-theme .text-gray-300 {
+        color: #64748b !important;
+      }
+
+      body.light-theme .text-gray-400 {
+        color: #94a3b8 !important;
+      }
+
+      body.light-theme .bg-slate-900 {
+        background: rgba(255, 255, 255, 0.98) !important;
+        border: 1px solid rgba(99, 102, 241, 0.1) !important;
+        box-shadow: 0 10px 40px rgba(99, 102, 241, 0.08) !important;
+        border-radius: 20px !important;
+      }
+
+      body.light-theme .bg-slate-800 {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.9) 0%,
+          rgba(248, 250, 252, 0.9) 100%
+        ) !important;
+        border: 1px solid rgba(99, 102, 241, 0.08) !important;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 16px !important;
+      }
+
+      body.light-theme .audio-player {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.98) 0%,
+          rgba(248, 250, 252, 0.95) 100%
+        ) !important;
+        border: 2px solid rgba(99, 102, 241, 0.2) !important;
+        box-shadow: 0 15px 50px rgba(99, 102, 241, 0.1),
+          0 5px 20px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 20px !important;
+        backdrop-filter: blur(20px) !important;
+      }
+
+      body.light-theme nav {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08) !important;
+      }
+
+      body.light-theme nav a {
+        color: #1e293b !important;
+        transition: all 0.3s ease !important;
+      }
+
+      body.light-theme nav a:hover {
+        color: #6366f1 !important;
+        background: linear-gradient(
+          135deg,
+          rgba(99, 102, 241, 0.08) 0%,
+          rgba(168, 85, 247, 0.05) 100%
+        ) !important;
+        border-radius: 12px !important;
+        transform: translateY(-1px) !important;
+      }
+
+      body.light-theme .border-gray-700 {
+        border-color: rgba(99, 102, 241, 0.15) !important;
+      }
+
+      body.light-theme input,
+      body.light-theme select {
+        background: rgba(255, 255, 255, 0.98) !important;
+        border: 2px solid rgba(99, 102, 241, 0.15) !important;
+        color: #1e293b !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05) !important;
+        transition: all 0.3s ease !important;
+      }
+
+      body.light-theme input:focus,
+      body.light-theme select:focus {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1),
+          0 8px 25px rgba(99, 102, 241, 0.15) !important;
+        transform: translateY(-1px) !important;
+      }
+
+      body.light-theme .bg-gradient-to-r {
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #8b5cf6 50%,
+          #ec4899 100%
+        ) !important;
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3) !important;
+        border: none !important;
+      }
+
+      body.light-theme .bg-gradient-to-r:hover {
+        background: linear-gradient(
+          135deg,
+          #5b21b6 0%,
+          #7c3aed 50%,
+          #db2777 100%
+        ) !important;
+        box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4) !important;
+        transform: translateY(-2px) !important;
+      }
+
+      body.light-theme .waveform-placeholder {
+        background: linear-gradient(
+          90deg,
+          #6366f1,
+          #8b5cf6,
+          #ec4899
+        ) !important;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+        border-radius: 12px !important;
+      }
+
+      body.light-theme .progress-bar {
+        background: rgba(99, 102, 241, 0.15) !important;
+        border-radius: 8px !important;
+      }
+
+      body.light-theme .progress-fill {
+        background: linear-gradient(
+          90deg,
+          #6366f1,
+          #8b5cf6,
+          #ec4899
+        ) !important;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3) !important;
       }
 
       .glass-card {
@@ -67,7 +226,26 @@
         overflow: hidden;
         margin-bottom: 10px;
       }
+      .ai-icon {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6366f1, #ec4899);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
+      .ai-icon::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        background: #0f172a;
+        animation: pulse 2s infinite;
+      }
       .progress-fill {
         height: 100%;
         background: linear-gradient(90deg, #6366f1, #ec4899);
@@ -81,7 +259,11 @@
       <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <a href="/" class="text-2xl font-bold gradient-text">Denoisify</a>
+              <a href="/"<div class="flex items-center justify-between text-sm">
+                  <div class="flex items-center text-gray-400">
+                    <div class="ai-icon mr-2"></div>
+                    <span class="text-2xl font-bold gradient-text">DeNoisify</span>
+                  </div></a>
           </div>
           <div class="flex items-center space-x-4">
             <a
@@ -96,6 +278,28 @@
             >
               Audio Processor
             </a>
+            {% if user.is_authenticated %}
+            <a
+              href="{% url 'denoiser:profile' %}"
+              class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Profile
+            </a>
+            {% else %}
+            <a
+              href="{% url 'denoiser:login' %}"
+              class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Sign In
+            </a>
+            {% endif %}
+            <!-- Theme Toggle Button -->
+            <button
+              id="themeToggle"
+              class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/20"
+              title="Toggle theme"
+            >
+            </button>
           </div>
         </div>
       </div>
@@ -119,7 +323,12 @@
             Upload Audio File
           </h2>
 
-          <form method="post" enctype="multipart/form-data" class="space-y-6">
+          <form
+            id="uploadForm"
+            method="post"
+            enctype="multipart/form-data"
+            class="space-y-6"
+          >
             {% csrf_token %}
 
             <!-- File Upload -->
@@ -134,12 +343,23 @@
                 type="file"
                 name="file"
                 id="id_file"
-                accept=".wav,.mp3,.flac,.aac,.ogg"
+                accept=".wav"
                 required
                 class="block w-full text-sm text-gray-300 bg-slate-700 border border-slate-600 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent p-3"
               />
               <p class="mt-1 text-xs text-gray-500">
-                Supported formats: WAV, MP3, FLAC, AAC, OGG (Max: 50MB)
+                WAV format only (16-bit recommended). For MP3/other formats,
+                convert to WAV first using
+                <a
+                  href="https://cloudconvert.com/mp3-to-wav"
+                  target="_blank"
+                  class="text-blue-400 hover:text-blue-300"
+                  >cloudconvert.com</a
+                >
+                (Max: 50MB)
+              </p>
+              <p id="fileError" class="mt-2 text-sm text-red-400 hidden">
+                Unsupported file format.
               </p>
             </div>
 
@@ -155,16 +375,17 @@
                   <input
                     type="radio"
                     name="processing_method"
-                    value="waveunet_ssbse"
+                    value="voice_preserving"
                     checked
                     class="mr-3 text-indigo-600 focus:ring-indigo-500"
                   />
                   <div>
                     <div class="text-sm font-medium text-gray-300">
-                      WaveUNet + SSBSE
+                      Voice-Preserving
                     </div>
                     <div class="text-xs text-gray-500">
-                      Deep learning + spectral enhancement (Recommended)
+                      Best voice quality - preserves natural speech
+                      characteristics
                     </div>
                   </div>
                 </label>
@@ -174,15 +395,51 @@
                   <input
                     type="radio"
                     name="processing_method"
-                    value="ssbse_only"
+                    value="standard"
                     class="mr-3 text-indigo-600 focus:ring-indigo-500"
                   />
                   <div>
                     <div class="text-sm font-medium text-gray-300">
-                      SSBSE Only
+                      Standard Denoising
                     </div>
                     <div class="text-xs text-gray-500">
-                      Spectral subtraction with bispectral enhancement
+                      Balanced noise reduction and voice quality
+                    </div>
+                  </div>
+                </label>
+                <label
+                  class="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="processing_method"
+                    value="aggressive"
+                    class="mr-3 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <div class="text-sm font-medium text-gray-300">
+                      Aggressive Denoising
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      Maximum noise reduction (may affect voice quality)
+                    </div>
+                  </div>
+                </label>
+                <label
+                  class="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="processing_method"
+                    value="waveunet_only"
+                    class="mr-3 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <div class="text-sm font-medium text-gray-300">
+                      WaveUNet Only
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      Minimal processing for maximum voice fidelity
                     </div>
                   </div>
                 </label>
@@ -222,172 +479,70 @@
       </div>
       {% endif %}
 
-      <!-- Success Results -->
-      {% if success and input_audio and output_audio %}
-      <div class="max-w-6xl mx-auto">
-        <div class="glass-card rounded-xl p-8">
-          <h2 class="text-2xl font-semibold mb-6 text-center">
-            Audio Comparison Results
-          </h2>
-
-          <!-- Processing Info -->
-          <div class="bg-slate-800 rounded-lg p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-              <div>
-                <div class="text-sm text-gray-400">Method Used</div>
-                <div class="text-lg font-medium text-indigo-400">
-                  {{ processing_method }}
-                </div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-400">Original Size</div>
-                <div class="text-lg font-medium text-gray-300">
-                  {{ input_size }} KB
-                </div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-400">Processed Size</div>
-                <div class="text-lg font-medium text-gray-300">
-                  {{ output_size }} KB
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Audio Comparison -->
-          <div class="comparison-grid">
-            <!-- Original Audio -->
-            <div class="audio-player">
-              <h3 class="text-lg font-semibold mb-4 text-center">
-                <span class="text-red-400">Original</span> (Noisy)
-              </h3>
-              <div class="waveform-placeholder">
-                Original Waveform Visualization
-              </div>
-              <audio
-                controls
-                preload="metadata"
-                class="w-full mb-4"
-                style="filter: sepia(1) saturate(2) hue-rotate(315deg)"
-              >
-                <source
-                  src="{{ MEDIA_URL }}{{ input_audio }}"
-                  type="audio/wav"
-                />
-                <source
-                  src="{{ MEDIA_URL }}{{ input_audio }}"
-                  type="audio/mpeg"
-                />
-                Your browser does not support the audio element.
-              </audio>
-              <div class="text-center">
-                <a
-                  href="{{ MEDIA_URL }}{{ input_audio }}"
-                  download
-                  class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition duration-200"
-                >
-                  <svg
-                    class="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    ></path>
-                  </svg>
-                  Download Original
-                </a>
-              </div>
-            </div>
-
-            <!-- Processed Audio -->
-            <div class="audio-player">
-              <h3 class="text-lg font-semibold mb-4 text-center">
-                <span class="text-green-400">Processed</span> (Denoised)
-              </h3>
-              <div class="waveform-placeholder">
-                Processed Waveform Visualization
-              </div>
-              <audio
-                controls
-                preload="metadata"
-                class="w-full mb-4"
-                style="filter: sepia(1) saturate(2) hue-rotate(95deg)"
-              >
-                <source
-                  src="{{ MEDIA_URL }}{{ output_audio }}"
-                  type="audio/wav"
-                />
-                <source
-                  src="{{ MEDIA_URL }}{{ output_audio }}"
-                  type="audio/mpeg"
-                />
-                Your browser does not support the audio element.
-              </audio>
-              <div class="text-center">
-                <a
-                  href="{{ MEDIA_URL }}{{ output_audio }}"
-                  download
-                  class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition duration-200"
-                >
-                  <svg
-                    class="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    ></path>
-                  </svg>
-                  Download Processed
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Comparison Controls -->
-          <div class="mt-8 text-center">
-            <div class="bg-slate-800 rounded-lg p-4 mb-4">
-              <h4 class="text-lg font-medium mb-4">Quick Comparison</h4>
-              <div class="space-y-2">
-                <button
-                  onclick="playAudio('original')"
-                  class="mx-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition duration-200"
-                >
-                  Play Original
-                </button>
-                <button
-                  onclick="playAudio('processed')"
-                  class="mx-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200"
-                >
-                  Play Processed
-                </button>
-                <button
-                  onclick="stopAllAudio()"
-                  class="mx-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition duration-200"
-                >
-                  Stop All
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Process Another File -->
-          <div class="text-center mt-6">
-            <button
-              onclick="window.location.reload()"
-              class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition duration-200"
+      <!-- Success Results - Now handled by progress tracking -->
+      {% if success and folder_name %}
+      <div class="max-w-2xl mx-auto">
+        <div class="glass-card rounded-xl p-8 text-center">
+          <div class="mb-6">
+            <div
+              class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4"
             >
-              Process Another File
-            </button>
+              <svg
+                class="w-8 h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-semibold mb-2 text-green-400">
+              Processing Complete!
+            </h2>
+            <p class="text-gray-300 mb-6">
+              Your audio has been successfully processed using AI denoising
+              technology.
+            </p>
+          </div>
+
+          <a
+            href="{% url 'results_page' folder_name %}"
+            class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white rounded-lg font-medium text-lg transition duration-300 ease-in-out transform hover:scale-105"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              ></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              ></path>
+            </svg>
+            View Results
+          </a>
+
+          <div class="mt-6">
+            <a
+              href="/processor/"
+              class="text-indigo-400 hover:text-indigo-300 text-sm transition-colors"
+            >
+              Process Another File →
+            </a>
           </div>
         </div>
       </div>
@@ -395,58 +550,94 @@
     </div>
 
     <script>
-      function playAudio(type) {
-        // Stop all audio first
-        stopAllAudio();
-
-        // Get all audio elements
-        const audioElements = document.querySelectorAll("audio");
-
-        if (type === "original") {
-          audioElements[0].play();
-        } else if (type === "processed") {
-          audioElements[1].play();
+      // Theme initialization - apply theme on page load
+      (function () {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "light") {
+          document.body.classList.add("light-theme");
         }
-      }
+      })();
 
-      function stopAllAudio() {
-        const audioElements = document.querySelectorAll("audio");
-        audioElements.forEach((audio) => {
-          audio.pause();
-          audio.currentTime = 0;
+      // Theme toggle functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        const themeToggle = document.getElementById("themeToggle");
+        const themeIcon = document.getElementById("themeIcon");
+
+        // Set initial icon based on current theme
+        function updateThemeIcon() {
+          const isLight =
+            document.documentElement.classList.contains("light-theme");
+          themeIcon.textContent = isLight ? "☀️" : "🌙";
+        }
+
+        updateThemeIcon();
+
+        // Theme toggle handler
+        themeToggle?.addEventListener("click", function () {
+          const isCurrentlyLight =
+            document.documentElement.classList.contains("light-theme");
+
+          if (isCurrentlyLight) {
+            // Switch to dark theme
+            document.documentElement.classList.remove("light-theme");
+            localStorage.setItem("theme", "dark");
+          } else {
+            // Switch to light theme
+            document.documentElement.classList.add("light-theme");
+            localStorage.setItem("theme", "light");
+          }
+
+          updateThemeIcon();
         });
-      }
+      });
 
-      // Add keyboard shortcuts
-      document.addEventListener("keydown", function (e) {
-        if (e.ctrlKey || e.metaKey) {
-          switch (e.key) {
-            case "1":
-              e.preventDefault();
-              playAudio("original");
-              break;
-            case "2":
-              e.preventDefault();
-              playAudio("processed");
-              break;
-            case " ":
-              e.preventDefault();
-              stopAllAudio();
-              break;
+      // Simple client-side validation for audio file formats
+      (function () {
+        var fileInput = document.getElementById("id_file");
+        var form = document.getElementById("uploadForm");
+        var errorEl = document.getElementById("fileError");
+        if (!fileInput || !form || !errorEl) return;
+
+        var allowedExtensions = ["wav", "mp3", "flac", "aac", "ogg"]; // lowercase
+
+        function isValidFile(fileName) {
+          if (!fileName) return false;
+          var parts = fileName.split(".");
+          if (parts.length < 2) return false;
+          var ext = parts.pop().toLowerCase();
+          return allowedExtensions.indexOf(ext) !== -1;
+        }
+
+        function showError(show) {
+          if (show) {
+            errorEl.classList.remove("hidden");
+          } else {
+            errorEl.classList.add("hidden");
           }
         }
-      });
 
-      // Show keyboard shortcuts info
-      document.addEventListener("DOMContentLoaded", function () {
-        if (document.querySelector("audio")) {
-          const shortcutsInfo = document.createElement("div");
-          shortcutsInfo.className = "text-center mt-4 text-sm text-gray-400";
-          shortcutsInfo.innerHTML =
-            "Keyboard shortcuts: Ctrl+1 (Original), Ctrl+2 (Processed), Ctrl+Space (Stop)";
-          document.querySelector(".glass-card").appendChild(shortcutsInfo);
-        }
-      });
+        fileInput.addEventListener("change", function () {
+          var file = fileInput.files && fileInput.files[0];
+          var name = file ? file.name : fileInput.value; // fallback for some browsers
+          var ok = isValidFile(name);
+          showError(!ok);
+          if (!ok) {
+            // clear invalid selection to force re-pick
+            fileInput.value = "";
+          }
+        });
+
+        form.addEventListener("submit", function (e) {
+          var file = fileInput.files && fileInput.files[0];
+          var name = file ? file.name : fileInput.value;
+          if (!isValidFile(name)) {
+            e.preventDefault();
+            showError(true);
+          } else {
+            showError(false);
+          }
+        });
+      })();
     </script>
   </body>
 </html>
