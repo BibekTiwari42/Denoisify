@@ -296,7 +296,7 @@
               class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/20"
               title="Toggle theme"
             >
-              <span id="themeIcon" class="text-lg">🌙</span>
+
             </button>
           </div>
         </div>
@@ -307,37 +307,11 @@
       <!-- Header -->
       <div class="text-center mb-8">
         <h1 class="text-4xl font-bold mb-4">
-          <span class="gradient-text">Audio Comparison Results</span>
+          <span class="gradient-text">Audio  Results</span>
         </h1>
         <p class="text-gray-300 text-lg">
-          Your audio has been successfully processed using AI denoising
+          Your audio has been successfully processed!!!!!!
         </p>
-      </div>
-
-      <!-- Processing Info -->
-      <div class="max-w-4xl mx-auto mb-8">
-        <div class="glass-card rounded-xl p-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div>
-              <div class="text-sm text-gray-400">Method Used</div>
-              <div class="text-lg font-medium text-indigo-400">
-                {{ processing_method|default:"WaveUNet + MMSE-STSA" }}
-              </div>
-            </div>
-            <div>
-              <div class="text-sm text-gray-400">Original Size</div>
-              <div class="text-lg font-medium text-gray-300">
-                {{ input_size|default:"0" }} KB
-              </div>
-            </div>
-            <div>
-              <div class="text-sm text-gray-400">Processed Size</div>
-              <div class="text-lg font-medium text-green-400">
-                {{ output_size|default:"0" }} KB
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Audio Comparison -->
@@ -482,19 +456,10 @@
               <h3 class="text-lg font-semibold text-white mb-2">
                 Original Audio
               </h3>
-              <p class="text-gray-400 text-sm mb-4">
-                Download the original noisy audio file
-              </p>
               <p class="text-sm text-gray-500 mb-2">
                 Size: {{ input_size|default:"0" }} KB
               </p>
-              {% if input_quality.bit_depth %}
-              <p class="text-xs text-gray-600 mb-4">
-                Quality: {{ input_quality.bit_depth }}-bit, {{ input_quality.sample_rate }}Hz
-                {% if input_quality.duration %}, {{ input_quality.duration|floatformat:1 }}s{% endif %}
-              </p>
-              {% endif %}
-              
+
               {% if input_audio %}
               <button
                 onclick="handleDownload('{{ MEDIA_URL }}{{ input_audio }}', 'original')"
@@ -547,22 +512,10 @@
               <h3 class="text-lg font-semibold text-white mb-2">
                 Enhanced Audio
               </h3>
-              <p class="text-gray-400 text-sm mb-4">
-                Download the AI-enhanced denoised audio
-              </p>
               <p class="text-sm text-gray-500 mb-2">
                 Size: {{ output_size|default:"0" }} KB
               </p>
-              {% if output_quality.bit_depth %}
-              <p class="text-xs text-gray-600 mb-4">
-                Quality: {{ output_quality.bit_depth }}-bit, {{ output_quality.sample_rate }}Hz
-                {% if output_quality.duration %}, {{ output_quality.duration|floatformat:1 }}s{% endif %}
-                {% if input_quality.bit_depth and output_quality.bit_depth == input_quality.bit_depth and output_quality.sample_rate == input_quality.sample_rate %}
-                <span class="text-green-400">✓ Quality Preserved</span>
-                {% endif %}
-              </p>
-              {% endif %}
-              
+
               {% if folder_name %}
               <button
                 onclick="handleDownload('{% url 'denoiser:test_audio' folder_name %}', 'enhanced')"
@@ -591,28 +544,6 @@
                 Enhanced Not Available
               </button>
               {% endif %}
-            </div>
-          </div>
-
-          <!-- Processing Info -->
-          <div class="mt-8 bg-slate-700 rounded-lg p-4">
-            <div class="flex items-center justify-center text-center">
-              <div class="mr-6">
-                <span class="text-sm text-gray-400">Processing Method:</span>
-                <span class="text-green-400 font-medium ml-2"
-                  >{{ processing_method|default:"AI Denoising" }}</span
-                >
-              </div>
-              <div class="mr-6">
-                <span class="text-sm text-gray-400">Noise Reduction:</span>
-                <span class="text-green-400 font-medium ml-2">Advanced</span>
-              </div>
-              <div>
-                <span class="text-sm text-gray-400">Quality:</span>
-                <span class="text-green-400 font-medium ml-2"
-                  >Studio Grade</span
-                >
-              </div>
             </div>
           </div>
         </div>
