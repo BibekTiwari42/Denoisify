@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile - Denoisify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      /* Light theme overrides */
+      body.light-theme {
+        background: linear-gradient(
+          135deg,
+          #fafbff 0%,
+          #f1f5f9 25%,
+          #e2e8f0 50%,
+          #f8fafc 75%,
+          #ffffff 100%
+        ) !important;
+      }
+
+      body.light-theme nav {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08) !important;
+      }
+
+      body.light-theme nav a {
+        color: #1e293b !important;
+        transition: all 0.3s ease !important;
+      }
+
+      body.light-theme nav a:hover {
+        color: #6366f1 !important;
+        background: linear-gradient(
+          135deg,
+          rgba(99, 102, 241, 0.08) 0%,
+          rgba(168, 85, 247, 0.05) 100%
+        ) !important;
+        border-radius: 12px !important;
+        transform: translateY(-1px) !important;
+      }
+
+      body.light-theme .glass-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1),
+          0 8px 25px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 24px !important;
+        backdrop-filter: blur(20px) !important;
+      }
+
+      body.light-theme .text-white {
+        color: #1e293b !important;
+      }
+
+      body.light-theme .text-gray-300 {
+        color: #475569 !important;
+      }
+
+      body.light-theme .text-gray-400 {
+        color: #64748b !important;
+      }
+
+      body.light-theme .bg-slate-800 {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.9) 0%,
+          rgba(248, 250, 252, 0.9) 100%
+        ) !important;
+        border: 1px solid rgba(99, 102, 241, 0.08) !important;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 16px !important;
+      }
+
+      body.light-theme .bg-gradient-to-r {
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #8b5cf6 50%,
+          #ec4899 100%
+        ) !important;
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3) !important;
+        border: none !important;
+        border-radius: 16px !important;
+      }
+
+      body.light-theme .bg-gradient-to-r:hover {
+        background: linear-gradient(
+          135deg,
+          #5b21b6 0%,
+          #7c3aed 50%,
+          #db2777 100%
+        ) !important;
+        box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4) !important;
+        transform: translateY(-2px) !important;
+      }
+
+      .glass-card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .gradient-text {
+        background: linear-gradient(90deg, #6366f1, #ec4899);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 min-h-screen"
+  >
+    <!-- Navigation -->
+    <nav class="bg-black/20 backdrop-blur-md border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <a
+              href="{% url 'denoiser:home' %}"
+              class="text-white text-xl font-bold"
+            >
+              Denoisify
+            </a>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a
+              href="{% url 'denoiser:audio_processor' %}"
+              class="text-gray-300 hover:text-indigo-400 transition-colors"
+            >
+              Audio Processor
+            </a>
+            <div class="relative group">
+              <button
+                class="text-gray-300 hover:text-indigo-400 transition-colors flex items-center space-x-1"
+              >
+                <span>{{ user.username }}</span>
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                class="absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-lg border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <a
+                  href="{% url 'denoiser:profile' %}"
+                  class="block px-4 py-2 text-gray-300 hover:text-indigo-400 hover:bg-slate-700"
+                  >Profile</a
+                >
+                <a
+                  href="{% url 'denoiser:audio_history' %}"
+                  class="block px-4 py-2 text-gray-300 hover:text-indigo-400 hover:bg-slate-700"
+                  >Audio History</a
+                >
+                <button
+                  onclick="showLogoutConfirmation()"
+                  class="block w-full text-left px-4 py-2 text-gray-300 hover:text-indigo-400 hover:bg-slate-700"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+      <!-- Profile Header -->
+      <div class="glass-card rounded-2xl p-8 mb-8">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center space-x-4">
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold"
+            >
+              {{ user.username|first|upper }}
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-white mb-2">
+                {% if user.first_name and user.last_name %}
+                  {{ user.first_name }} {{ user.last_name }}
+                {% else %}
+                  {{ user.username }}
+                {% endif %}
+              </h1>
+              <p class="text-gray-400">{{ user.email }}</p>
+              <p class="text-sm text-gray-500">
+                Member since {{ user.date_joined|date:"F Y" }}
+              </p>
+            </div>
+          </div>
+          <div class="flex space-x-3">
+            <a
+              href="{% url 'denoiser:edit_profile' %}"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Edit Profile
+            </a>
+            <a
+              href="{% url 'denoiser:change_password' %}"
+              class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Change Password
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card rounded-xl p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm">Total Uploads</p>
+              <p class="text-2xl font-bold text-white">{{ total_uploads }}</p>
+            </div>
+            <div
+              class="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm">Account Status</p>
+              <p class="text-2xl font-bold text-green-400">Active</p>
+            </div>
+            <div
+              class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm">Last Login</p>
+              <p class="text-lg font-semibold text-white">
+                {{ user.last_login|date:"M d, Y" }}
+              </p>
+            </div>
+            <div
+              class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="glass-card rounded-2xl p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-white">Recent Audio Uploads</h2>
+          <a
+            href="{% url 'denoiser:audio_history' %}"
+            class="text-indigo-400 hover:text-indigo-300 transition-colors"
+          >
+            View All →
+          </a>
+        </div>
+
+        {% if recent_uploads %}
+        <div class="space-y-4">
+          {% for upload in recent_uploads %}
+          <div
+            class="bg-slate-800 rounded-lg p-4 flex items-center justify-between"
+          >
+            <div class="flex items-center space-x-4">
+              <div
+                class="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-white font-medium">
+                  {{ upload.original_filename }}
+                </p>
+                <p class="text-gray-400 text-sm">
+                  {{ upload.uploaded_at|timesince }} ago
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              {% if upload.status == 'completed' %}
+              <span
+                class="px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-sm"
+                >Completed</span
+              >
+              {% elif upload.status == 'processing' %}
+              <span
+                class="px-3 py-1 bg-yellow-900/50 text-yellow-400 rounded-full text-sm"
+                >Processing</span
+              >
+              {% elif upload.status == 'failed' %}
+              <span
+                class="px-3 py-1 bg-red-900/50 text-red-400 rounded-full text-sm"
+                >Failed</span
+              >
+              {% else %}
+              <span
+                class="px-3 py-1 bg-blue-900/50 text-blue-400 rounded-full text-sm"
+                >{{ upload.status|title }}</span
+              >
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+          <svg
+            class="w-16 h-16 text-gray-500 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+            ></path>
+          </svg>
+          <p class="text-gray-400 mb-4">No audio uploads yet</p>
+          <a
+            href="{% url 'denoiser:audio_processor' %}"
+            class="bg-gradient-to-r from-indigo-500 to-pink-500 text-white px-6 py-2 rounded-lg hover:from-indigo-600 hover:to-pink-600 transition-all"
+          >
+            Upload Your First Audio
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div
+      id="logoutModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold text-white mb-4">Confirm Logout</h3>
+        <p class="text-gray-300 mb-6">Are you sure you want to sign out?</p>
+        <div class="flex space-x-3">
+          <button
+            onclick="confirmLogout()"
+            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Yes, Sign Out
+          </button>
+          <button
+            onclick="hideLogoutConfirmation()"
+            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Theme initialization - apply theme on page load
+      (function () {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "light") {
+          document.body.classList.add("light-theme");
+        }
+      })();
+
+      // Logout functionality
+      function showLogoutConfirmation() {
+        document.getElementById("logoutModal").classList.remove("hidden");
+      }
+
+      function hideLogoutConfirmation() {
+        document.getElementById("logoutModal").classList.add("hidden");
+      }
+
+      function confirmLogout() {
+        fetch('{% url "denoiser:logout" %}', {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              window.location.href = "/";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            window.location.href = "/";
+          });
+      }
+    </script>
+  </body>
+</html>
