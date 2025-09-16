@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Results - Denoisify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      }
+
+      .glass-card {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .gradient-text {
+        background: linear-gradient(90deg, #6366f1, #ec4899);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .audio-player {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .comparison-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .registration-card {
+        background: linear-gradient(145deg, #4f46e5, #7c3aed);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        margin: 2rem 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .registration-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        pointer-events: none;
+      }
+
+      .pulse-button {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+        }
+      }
+
+      .feature-icon {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        padding: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      /* Light theme overrides */
+      body.light-theme {
+        background: linear-gradient(
+          135deg,
+          #fafbff 0%,
+          #f1f5f9 25%,
+          #e2e8f0 50%,
+          #f8fafc 75%,
+          #ffffff 100%
+        ) !important;
+        color: #1e293b !important;
+      }
+
+      body.light-theme .glass-card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1),
+          0 8px 25px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 24px !important;
+      }
+
+      body.light-theme .audio-player {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.98) 0%,
+          rgba(248, 250, 252, 0.95) 100%
+        ) !important;
+        border: 2px solid rgba(99, 102, 241, 0.2) !important;
+        box-shadow: 0 15px 50px rgba(99, 102, 241, 0.1),
+          0 5px 20px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 20px !important;
+        backdrop-filter: blur(20px) !important;
+      }
+
+      body.light-theme .bg-slate-900 {
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08) !important;
+      }
+
+      body.light-theme .text-white {
+        color: #1e293b !important;
+      }
+
+      body.light-theme .text-gray-400 {
+        color: #64748b !important;
+      }
+
+      body.light-theme .text-gray-300 {
+        color: #475569 !important;
+      }
+
+      body.light-theme .text-slate-400 {
+        color: #64748b !important;
+      }
+
+      body.light-theme .bg-indigo-600 {
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #8b5cf6 100%
+        ) !important;
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3) !important;
+      }
+
+      body.light-theme .bg-indigo-600:hover {
+        background: linear-gradient(
+          135deg,
+          #5b21b6 0%,
+          #7c3aed 100%
+        ) !important;
+        box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4) !important;
+        transform: translateY(-2px) !important;
+      }
+
+      body.light-theme .bg-slate-800 {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.9) 0%,
+          rgba(248, 250, 252, 0.9) 100%
+        ) !important;
+        border: 1px solid rgba(99, 102, 241, 0.08) !important;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05) !important;
+        border-radius: 16px !important;
+      }
+
+      body.light-theme .border-slate-700 {
+        border-color: rgba(99, 102, 241, 0.15) !important;
+      }
+
+      body.light-theme .registration-card {
+        background: linear-gradient(
+          145deg,
+          #6366f1,
+          #8b5cf6,
+          #ec4899
+        ) !important;
+        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3) !important;
+        border-radius: 24px !important;
+        backdrop-filter: blur(20px) !important;
+      }
+
+      /* Enhanced download buttons */
+      body.light-theme .bg-gradient-to-r {
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #8b5cf6 50%,
+          #ec4899 100%
+        ) !important;
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3) !important;
+        border: none !important;
+        border-radius: 16px !important;
+      }
+
+      body.light-theme .bg-gradient-to-r:hover {
+        background: linear-gradient(
+          135deg,
+          #5b21b6 0%,
+          #7c3aed 50%,
+          #db2777 100%
+        ) !important;
+        box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4) !important;
+        transform: translateY(-2px) !important;
+      }
+
+      /* Enhanced comparison cards */
+      body.light-theme .comparison-grid > div {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.95) 0%,
+          rgba(248, 250, 252, 0.9) 100%
+        ) !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 15px 50px rgba(99, 102, 241, 0.08) !important;
+        backdrop-filter: blur(20px) !important;
+        transition: all 0.3s ease !important;
+      }
+
+      body.light-theme .comparison-grid > div:hover {
+        transform: translateY(-5px) !important;
+        box-shadow: 0 25px 80px rgba(99, 102, 241, 0.15) !important;
+        border-color: rgba(99, 102, 241, 0.25) !important;
+      }
+
+      /* Enhanced feature icons */
+      body.light-theme .feature-icon {
+        background: linear-gradient(
+          135deg,
+          rgba(99, 102, 241, 0.15) 0%,
+          rgba(168, 85, 247, 0.1) 100%
+        ) !important;
+        border: 1px solid rgba(99, 102, 241, 0.2) !important;
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.1) !important;
+        backdrop-filter: blur(10px) !important;
+      }
+
+      /* Enhanced modal styles */
+      body.light-theme .modal-content {
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(99, 102, 241, 0.15) !important;
+        box-shadow: 0 25px 80px rgba(99, 102, 241, 0.2) !important;
+        border-radius: 24px !important;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-white">
+    <!-- Navigation -->
+    <nav class="bg-slate-900 shadow-lg">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <a href="/" class="text-2xl font-bold gradient-text">Denoisify</a>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a
+              href="/"
+              class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Home
+            </a>
+            <a
+              href="/processor/"
+              class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Audio Processor
+            </a>
+            <!-- Theme Toggle Button -->
+            <button
+              id="themeToggle"
+              class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/20"
+              title="Toggle theme"
+            >
+              <span id="themeIcon" class="text-lg">🌙</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-4">
+          <span class="gradient-text">Audio Comparison Results</span>
+        </h1>
+        <p class="text-gray-300 text-lg">
+          Your audio has been successfully processed using AI denoising
+        </p>
+      </div>
+
+      <!-- Processing Info -->
+      <div class="max-w-4xl mx-auto mb-8">
+        <div class="glass-card rounded-xl p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div>
+              <div class="text-sm text-gray-400">Method Used</div>
+              <div class="text-lg font-medium text-indigo-400">
+                {{ processing_method|default:"WaveUNet + MMSE-STSA" }}
+              </div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-400">Original Size</div>
+              <div class="text-lg font-medium text-gray-300">
+                {{ input_size|default:"0" }} KB
+              </div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-400">Processed Size</div>
+              <div class="text-lg font-medium text-green-400">
+                {{ output_size|default:"0" }} KB
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audio Comparison -->
+      <div class="max-w-6xl mx-auto mb-8">
+        <div class="glass-card rounded-xl p-8">
+          <div class="comparison-grid">
+            <!-- Original Audio -->
+            <div class="audio-player">
+              <h3 class="text-lg font-semibold mb-4 text-center">
+                <span class="text-red-400">Original</span> (Noisy)
+              </h3>
+              <div class="waveform-visualization mb-4">
+                {% if folder_name %}
+                <img
+                  src="{{ MEDIA_URL }}audio_results/{{ folder_name }}/input_waveform.png"
+                  alt="Original Waveform"
+                  class="w-full h-32 object-cover rounded-lg border border-gray-600"
+                  onerror="this.style.display='none'"
+                />
+                {% else %}
+                <div
+                  class="w-full h-32 bg-gradient-to-r from-red-500 to-red-700 rounded-lg flex items-center justify-center"
+                >
+                  <span class="text-white font-medium">Original Waveform</span>
+                </div>
+                {% endif %}
+              </div>
+              <audio
+                controls
+                preload="metadata"
+                class="w-full mb-4"
+                style="filter: sepia(1) saturate(2) hue-rotate(315deg)"
+              >
+                {% if input_audio %}
+                <source
+                  src="{{ MEDIA_URL }}{{ input_audio }}"
+                  type="audio/wav"
+                />
+                {% endif %} Your browser does not support the audio element.
+              </audio>
+            </div>
+
+            <!-- Processed Audio -->
+            <div class="audio-player">
+              <h3 class="text-lg font-semibold mb-4 text-center">
+                <span class="text-green-400">Processed</span> (Enhanced)
+              </h3>
+              <div class="waveform-visualization mb-4">
+                {% if folder_name %}
+                <img
+                  src="{{ MEDIA_URL }}audio_results/{{ folder_name }}/postprocessed_waveform.png"
+                  alt="Processed Waveform"
+                  class="w-full h-32 object-cover rounded-lg border border-gray-600"
+                  onerror="this.style.display='none'"
+                />
+                {% else %}
+                <div
+                  class="w-full h-32 bg-gradient-to-r from-green-500 to-green-700 rounded-lg flex items-center justify-center"
+                >
+                  <span class="text-white font-medium">Processed Waveform</span>
+                </div>
+                {% endif %}
+              </div>
+              <audio
+                controls
+                preload="metadata"
+                class="w-full mb-4"
+                style="filter: sepia(1) saturate(2) hue-rotate(95deg)"
+              >
+                {% if folder_name %}
+                <source
+                  src="{% url 'denoiser:test_audio' folder_name %}"
+                  type="audio/wav"
+                />
+                {% endif %} Your browser does not support the audio element.
+              </audio>
+            </div>
+          </div>
+
+          <!-- Comparison Controls -->
+          <div class="mt-8 text-center">
+            <div class="bg-slate-800 rounded-lg p-4 mb-4">
+              <h4 class="text-lg font-medium mb-4">Quick Comparison</h4>
+              <div class="space-y-2">
+                <button
+                  onclick="playAudio('original')"
+                  class="mx-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition duration-200"
+                >
+                  Play Original
+                </button>
+                <button
+                  onclick="playAudio('processed')"
+                  class="mx-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200"
+                >
+                  Play Processed
+                </button>
+                <button
+                  onclick="stopAllAudio()"
+                  class="mx-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition duration-200"
+                >
+                  Stop All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download Section -->
+      <div class="max-w-4xl mx-auto">
+        <div class="glass-card rounded-xl p-8">
+          <div class="text-center mb-6">
+            <h2 class="text-3xl font-bold text-white mb-4">
+              Download Your Enhanced Audio
+            </h2>
+            <p class="text-xl text-gray-300 mb-6">
+              Your audio has been successfully processed and is ready for
+              download
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Download Original -->
+            <div class="bg-slate-800 rounded-lg p-6 text-center">
+              <div
+                class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white mb-2">
+                Original Audio
+              </h3>
+              <p class="text-gray-400 text-sm mb-4">
+                Download the original noisy audio file
+              </p>
+              <p class="text-sm text-gray-500 mb-2">
+                Size: {{ input_size|default:"0" }} KB
+              </p>
+              {% if input_quality.bit_depth %}
+              <p class="text-xs text-gray-600 mb-4">
+                Quality: {{ input_quality.bit_depth }}-bit, {{ input_quality.sample_rate }}Hz
+                {% if input_quality.duration %}, {{ input_quality.duration|floatformat:1 }}s{% endif %}
+              </p>
+              {% endif %}
+              
+              {% if input_audio %}
+              <button
+                onclick="handleDownload('{{ MEDIA_URL }}{{ input_audio }}', 'original')"
+                class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition duration-200"
+              >
+                <svg
+                  class="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+                Download Original
+              </button>
+              {% else %}
+              <button
+                disabled
+                class="inline-flex items-center px-6 py-3 bg-gray-600 text-gray-400 rounded-lg font-medium cursor-not-allowed"
+              >
+                Original Not Available
+              </button>
+              {% endif %}
+            </div>
+
+            <!-- Download Processed -->
+            <div class="bg-slate-800 rounded-lg p-6 text-center">
+              <div
+                class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white mb-2">
+                Enhanced Audio
+              </h3>
+              <p class="text-gray-400 text-sm mb-4">
+                Download the AI-enhanced denoised audio
+              </p>
+              <p class="text-sm text-gray-500 mb-2">
+                Size: {{ output_size|default:"0" }} KB
+              </p>
+              {% if output_quality.bit_depth %}
+              <p class="text-xs text-gray-600 mb-4">
+                Quality: {{ output_quality.bit_depth }}-bit, {{ output_quality.sample_rate }}Hz
+                {% if output_quality.duration %}, {{ output_quality.duration|floatformat:1 }}s{% endif %}
+                {% if input_quality.bit_depth and output_quality.bit_depth == input_quality.bit_depth and output_quality.sample_rate == input_quality.sample_rate %}
+                <span class="text-green-400">✓ Quality Preserved</span>
+                {% endif %}
+              </p>
+              {% endif %}
+              
+              {% if folder_name %}
+              <button
+                onclick="handleDownload('{% url 'denoiser:test_audio' folder_name %}', 'enhanced')"
+                class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition duration-200"
+              >
+                <svg
+                  class="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+                Download Enhanced
+              </button>
+              {% else %}
+              <button
+                disabled
+                class="inline-flex items-center px-6 py-3 bg-gray-600 text-gray-400 rounded-lg font-medium cursor-not-allowed"
+              >
+                Enhanced Not Available
+              </button>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Processing Info -->
+          <div class="mt-8 bg-slate-700 rounded-lg p-4">
+            <div class="flex items-center justify-center text-center">
+              <div class="mr-6">
+                <span class="text-sm text-gray-400">Processing Method:</span>
+                <span class="text-green-400 font-medium ml-2"
+                  >{{ processing_method|default:"AI Denoising" }}</span
+                >
+              </div>
+              <div class="mr-6">
+                <span class="text-sm text-gray-400">Noise Reduction:</span>
+                <span class="text-green-400 font-medium ml-2">Advanced</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-400">Quality:</span>
+                <span class="text-green-400 font-medium ml-2"
+                  >Studio Grade</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process Another File -->
+      <div class="text-center mt-8">
+        <a
+          href="/processor/"
+          class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition duration-200"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            ></path>
+          </svg>
+          Process Another File
+        </a>
+      </div>
+    </div>
+
+    <!-- Login Popup Modal -->
+    <div
+      id="loginModal"
+      class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 border border-slate-600 shadow-2xl"
+      >
+        <div class="text-center mb-6">
+          <div
+            class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4"
+          >
+            <svg
+              class="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              ></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-2">Login Required</h3>
+          <p class="text-gray-300">
+            You must be logged in to download audio files
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <a
+            href="{% url 'denoiser:login' %}?next={{ request.get_full_path }}"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+              ></path>
+            </svg>
+            Login to Your Account
+          </a>
+
+          <a
+            href="{% url 'denoiser:register' %}?next={{ request.get_full_path }}"
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+              ></path>
+            </svg>
+            Create New Account
+          </a>
+
+          <button
+            onclick="closeLoginModal()"
+            class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Theme initialization - apply theme on page load
+      (function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+          document.body.classList.add('light-theme');
+        }
+      })();
+
+      // Check if user is authenticated
+      let isUserAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+
+      function handleDownload(url, type) {
+        if (!isUserAuthenticated) {
+          showLoginModal();
+          return;
+        }
+
+        // User is authenticated, proceed with download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      function showLoginModal() {
+        document.getElementById('loginModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeLoginModal() {
+        document.getElementById('loginModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+      }
+
+      // Close modal when clicking outside
+      document.getElementById('loginModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeLoginModal();
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeLoginModal();
+        }
+      });
+
+      function playAudio(type) {
+        // Stop all audio first
+        stopAllAudio();
+
+        // Get all audio elements
+        const audioElements = document.querySelectorAll("audio");
+
+        if (type === "original") {
+          audioElements[0].play();
+        } else if (type === "processed") {
+          audioElements[1].play();
+        }
+      }
+
+      function stopAllAudio() {
+        const audioElements = document.querySelectorAll("audio");
+        audioElements.forEach((audio) => {
+          audio.pause();
+          audio.currentTime = 0;
+        });
+      }
+    </script>
+  </body>
+</html>
