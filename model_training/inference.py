@@ -4,6 +4,8 @@ import os
 import wave
 import struct
 from model import WaveUNet
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend to prevent tkinter errors
 import matplotlib.pyplot as plt
 from denoiser.mmse_stsa import mmse_stsa
 
