@@ -1136,6 +1136,23 @@
             });
           }, 200);
         }
+
+        // Check for logout messages in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const logoutSuccess = urlParams.get('logout_success');
+        const logoutError = urlParams.get('logout_error');
+        
+        if (logoutSuccess) {
+          // Show success message immediately
+          showLogoutSuccess(logoutSuccess);
+          // Clean up URL without reloading page
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (logoutError) {
+          // Show error message
+          alert(logoutError);
+          // Clean up URL without reloading page
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       });
     </script>
 
