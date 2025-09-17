@@ -7,6 +7,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from model import WaveUNet
 from dataset import AudioWaveformDataset
+import csv
 
 CONFIG = {
     "train_noisy_dir": "Data/train/noisy_trainset_28spk/noisy_trainset_28spk_wav",
@@ -15,14 +16,15 @@ CONFIG = {
     "valid_clean_dir": "Data/test/clean_testset",
     "sample_rate": 16000,
     "segment_length": 16384,
-    "batch_size": 8,
-    "epochs": 30,
+    "batch_size":16,
+    "epochs": 40,
     "lr": 1e-4,
     "checkpoint_path": "model_training/checkpoints/unet_best.pth",
     "device": "cuda" if torch.cuda.is_available() else "cpu"
 }
 
 os.makedirs(os.path.dirname(str(CONFIG["checkpoint_path"])), exist_ok=True)
+
 
 def get_file_pairs(noisy_dir, clean_dir):
     noisy_files = sorted(glob.glob(os.path.join(noisy_dir, "*.wav")))
@@ -65,11 +67,20 @@ def train():
             model.load_state_dict(checkpoint)
             print("Loaded model weights (no resume state).")
 
+    # Prepare to log metrics
+    log_path = "training_log.csv"
+    log_header = ['epoch', 'train_loss', 'val_loss', 'train_acc', 'val_acc']
+    if not os.path.exists(log_path) or start_epoch == 0:
+        with open(log_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(log_header)
+
     # Training loop
     for epoch in range(start_epoch, CONFIG["epochs"]):
         start_time = time.time()
         model.train()
         total_train_loss = 0.0
+        total_train_acc = 0.0
 
         for noisy, clean in train_loader:
             noisy = noisy.to(CONFIG["device"])
@@ -81,10 +92,19 @@ def train():
             optimizer.step()
             total_train_loss += loss.item()
 
+            # Normalized MSE-based accuracy proxy: 1 - (MSE / Var(target))
+            with torch.no_grad():
+                target_var = torch.var(clean)
+                norm_mse = loss.detach() / (target_var + 1e-8)
+                batch_acc = torch.clamp(1.0 - norm_mse, min=0.0, max=1.0) * 100.0
+                total_train_acc += float(batch_acc)
+
         avg_train_loss = total_train_loss / len(train_loader)
+        avg_train_acc = total_train_acc / len(train_loader)
 
         model.eval()
         total_val_loss = 0.0
+        total_val_acc = 0.0
         with torch.no_grad():
             for noisy, clean in valid_loader:
                 noisy = noisy.to(CONFIG["device"])
@@ -93,9 +113,20 @@ def train():
                 loss = criterion(output, clean)
                 total_val_loss += loss.item()
 
-        avg_val_loss = total_val_loss / len(valid_loader)
+                target_var = torch.var(clean)
+                norm_mse = loss / (target_var + 1e-8)
+                batch_acc = torch.clamp(1.0 - norm_mse, min=0.0, max=1.0) * 100.0
+                total_val_acc += float(batch_acc)
 
-        print(f"[Epoch {epoch+1:02d}] Train Loss: {avg_train_loss:.5f} | Val Loss: {avg_val_loss:.5f} | Time: {time.time() - start_time:.2f}s")
+        avg_val_loss = total_val_loss / len(valid_loader)
+        avg_val_acc = total_val_acc / len(valid_loader)
+
+        print(f"[Epoch {epoch+1:02d}] Train Loss: {avg_train_loss:.5f} | Val Loss: {avg_val_loss:.5f} | Train Acc: {avg_train_acc:.2f}% | Val Acc: {avg_val_acc:.2f}% | Time: {time.time() - start_time:.2f}s")
+
+        # Log to CSV
+        with open(log_path, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([epoch+1, avg_train_loss, avg_val_loss, avg_train_acc, avg_val_acc])
 
         # Save if best
         if avg_val_loss < best_val_loss:
