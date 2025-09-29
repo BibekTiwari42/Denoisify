@@ -1,0 +1,11 @@
+# Ignore all audio files in the Data directory
+*.wav
+*.mp3
+*.flac
+*.aac
+*.ogg
+*.m4a
+
+# But keep the directory structure and documentation
+!.gitkeep
+!README.md
