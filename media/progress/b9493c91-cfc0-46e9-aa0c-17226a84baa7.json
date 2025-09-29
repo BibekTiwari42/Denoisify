@@ -1,0 +1,23 @@
+{
+  "task_id": "b9493c91-cfc0-46e9-aa0c-17226a84baa7",
+  "stage": "completed",
+  "percentage": 100,
+  "message": "Audio processing completed successfully!",
+  "details": {
+    "folder_name": "p232_019",
+    "moved_files": [
+      "input_waveform.png",
+      "input_spectrogram.png",
+      "denoised_waveform.png",
+      "denoised_output_spectrogram.png",
+      "postprocessed_waveform.png",
+      "postprocessed_output_mmse_stsa_spectrogram.png",
+      "postprocessed_output_mmse_stsa.wav"
+    ],
+    "input_size": 631.5,
+    "output_size": 631.5,
+    "processing_method": "waveunet_only"
+  },
+  "timestamp": 1759145929.2056234,
+  "status": "completed"
+}

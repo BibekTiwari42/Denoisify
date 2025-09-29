@@ -1,0 +1,9 @@
+{
+  "task_id": "6bf8a19d-2a99-40c0-98ac-f30ba76bec8e",
+  "stage": "denoising",
+  "percentage": 30.0,
+  "message": "Processing audio...",
+  "details": {},
+  "timestamp": 1759146133.7124856,
+  "status": "processing"
+}
