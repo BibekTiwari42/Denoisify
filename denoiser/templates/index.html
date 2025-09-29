@@ -5,6 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Denoisify - AI-Powered Audio Enhancement</title>
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
     <!-- Local CSS fallback -->
     <link rel="stylesheet" href="{% static 'css/tailwind-essential.css' %}" />
     <!-- Tailwind CDN -->
@@ -14,413 +16,6 @@
       rel="stylesheet"
     />
     <meta name="csrf-token" content="{{ csrf_token }}" />
-    <style>
-      :root {
-        --primary: #6366f1;
-        --primary-dark: #4f46e5;
-        --secondary: #ec4899;
-        --dark: #1e293b;
-        --light: #f8fafc;
-      }
-
-      /* Dark theme (default) */
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #0f172a;
-        color: #f8fafc;
-        overflow-x: hidden;
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-
-      /* Light theme overrides */
-      body.light-theme {
-        background: linear-gradient(
-          135deg,
-          #fafbff 0%,
-          #f1f5f9 25%,
-          #e2e8f0 50%,
-          #f8fafc 75%,
-          #ffffff 100%
-        ) !important;
-        color: #1e293b !important;
-      }
-
-      body.light-theme .gradient-bg {
-        background: linear-gradient(
-          135deg,
-          rgba(99, 102, 241, 0.03) 0%,
-          rgba(168, 85, 247, 0.03) 100%
-        ) !important;
-      }
-
-      body.light-theme nav {
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(20px) !important;
-        border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
-        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08) !important;
-      }
-
-      body.light-theme .glass-card {
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(20px) !important;
-        border: 1px solid rgba(99, 102, 241, 0.15) !important;
-        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1),
-          0 8px 25px rgba(99, 102, 241, 0.05) !important;
-        border-radius: 24px !important;
-      }
-
-      body.light-theme .text-white {
-        color: #1e293b !important;
-      }
-
-      body.light-theme .text-gray-300 {
-        color: #64748b !important;
-      }
-
-      body.light-theme .text-gray-400 {
-        color: #94a3b8 !important;
-      }
-
-      body.light-theme .bg-slate-900 {
-        background: rgba(255, 255, 255, 0.98) !important;
-        border: 1px solid rgba(99, 102, 241, 0.1) !important;
-        box-shadow: 0 10px 40px rgba(99, 102, 241, 0.08) !important;
-      }
-
-      body.light-theme .bg-slate-800 {
-        background: linear-gradient(
-          135deg,
-          rgba(255, 255, 255, 0.9) 0%,
-          rgba(248, 250, 252, 0.9) 100%
-        ) !important;
-        border: 1px solid rgba(99, 102, 241, 0.08) !important;
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05) !important;
-      }
-
-      body.light-theme .bg-slate-700 {
-        background: linear-gradient(
-          135deg,
-          rgba(248, 250, 252, 0.95) 0%,
-          rgba(241, 245, 249, 0.95) 100%
-        ) !important;
-        border: 1px solid rgba(99, 102, 241, 0.1) !important;
-      }
-
-      body.light-theme .border-slate-600 {
-        border-color: rgba(99, 102, 241, 0.15) !important;
-      }
-
-      body.light-theme .border-slate-700 {
-        border-color: rgba(99, 102, 241, 0.12) !important;
-      }
-
-      body.light-theme footer {
-        background: rgba(255, 255, 255, 0.98) !important;
-        backdrop-filter: blur(20px) !important;
-        border-top: 1px solid rgba(99, 102, 241, 0.1) !important;
-        box-shadow: 0 -4px 20px rgba(99, 102, 241, 0.05) !important;
-      }
-
-      /* Enhanced hover effects for light theme */
-      body.light-theme nav a:hover {
-        background: linear-gradient(
-          135deg,
-          rgba(99, 102, 241, 0.08) 0%,
-          rgba(168, 85, 247, 0.05) 100%
-        ) !important;
-        color: #6366f1 !important;
-        border-radius: 12px !important;
-        transform: translateY(-1px) !important;
-        transition: all 0.3s ease !important;
-      }
-
-      body.light-theme .bg-slate-800:hover {
-        background: linear-gradient(
-          135deg,
-          rgba(99, 102, 241, 0.05) 0%,
-          rgba(168, 85, 247, 0.03) 100%
-        ) !important;
-        border-color: rgba(99, 102, 241, 0.2) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.12) !important;
-        transition: all 0.3s ease !important;
-      }
-
-      /* Enhanced button styles for light theme */
-      body.light-theme .bg-gradient-to-r {
-        background: linear-gradient(
-          135deg,
-          #6366f1 0%,
-          #8b5cf6 50%,
-          #ec4899 100%
-        ) !important;
-        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3) !important;
-        border: none !important;
-      }
-
-      body.light-theme .bg-gradient-to-r:hover {
-        background: linear-gradient(
-          135deg,
-          #5b21b6 0%,
-          #7c3aed 50%,
-          #db2777 100%
-        ) !important;
-        box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4) !important;
-        transform: translateY(-2px) !important;
-      }
-
-      /* Enhanced feature cards */
-      body.light-theme .feature-card {
-        background: linear-gradient(
-          135deg,
-          rgba(255, 255, 255, 0.98) 0%,
-          rgba(248, 250, 252, 0.95) 100%
-        ) !important;
-        border: 1px solid rgba(99, 102, 241, 0.1) !important;
-        box-shadow: 0 15px 50px rgba(99, 102, 241, 0.08),
-          0 5px 20px rgba(99, 102, 241, 0.05) !important;
-        backdrop-filter: blur(20px) !important;
-        border-radius: 20px !important;
-      }
-
-      body.light-theme .feature-card:hover {
-        transform: translateY(-5px) !important;
-        box-shadow: 0 25px 80px rgba(99, 102, 241, 0.15),
-          0 10px 30px rgba(99, 102, 241, 0.1) !important;
-        border-color: rgba(99, 102, 241, 0.25) !important;
-      }
-
-      /* Enhanced input styles */
-      body.light-theme input,
-      body.light-theme select {
-        background: rgba(255, 255, 255, 0.98) !important;
-        border: 2px solid rgba(99, 102, 241, 0.15) !important;
-        color: #1e293b !important;
-        border-radius: 16px !important;
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05) !important;
-        transition: all 0.3s ease !important;
-      }
-
-      body.light-theme input:focus,
-      body.light-theme select:focus {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1),
-          0 8px 25px rgba(99, 102, 241, 0.15) !important;
-        transform: translateY(-1px) !important;
-      }
-
-      /* Enhanced mobile menu */
-      body.light-theme .mobile-menu {
-        background: rgba(255, 255, 255, 0.98) !important;
-        backdrop-filter: blur(20px) !important;
-        border: 1px solid rgba(99, 102, 241, 0.1) !important;
-        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.1) !important;
-        border-radius: 20px !important;
-      }
-
-      .gradient-bg {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      }
-
-      .gradient-text {
-        background: linear-gradient(90deg, #6366f1, #ec4899);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-      }
-
-      .glass-card {
-        background: rgba(30, 41, 59, 0.7);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      }
-
-      .glow {
-        box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
-      }
-
-      .glow-text {
-        text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
-      }
-
-      .noise-wave {
-        position: relative;
-        height: 60px;
-        width: 100%;
-        overflow: hidden;
-      }
-
-      .audio-visualizer {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        height: 60px;
-      }
-
-      .audio-bar {
-        width: 3px;
-        background: linear-gradient(to top, #6366f1, #ec4899);
-        border-radius: 3px;
-        transition: height 0.2s ease;
-      }
-
-      .blob {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        z-index: -1;
-        opacity: 0.4;
-      }
-
-      .blob-1 {
-        background: #6366f1;
-        width: 300px;
-        height: 300px;
-        top: 10%;
-        left: -100px;
-        animation: float 8s ease-in-out infinite;
-      }
-
-      .blob-2 {
-        background: #ec4899;
-        width: 350px;
-        height: 350px;
-        top: 30%;
-        right: -150px;
-        animation: float 10s ease-in-out infinite;
-      }
-
-      .blob-3 {
-        background: #0ea5e9;
-        width: 250px;
-        height: 250px;
-        bottom: 10%;
-        left: 10%;
-        animation: float 12s ease-in-out infinite;
-      }
-
-      @keyframes float {
-        0% {
-          transform: translate(0, 0) rotate(0deg);
-        }
-        50% {
-          transform: translate(20px, 20px) rotate(5deg);
-        }
-        100% {
-          transform: translate(0, 0) rotate(0deg);
-        }
-      }
-
-      .waveform {
-        position: relative;
-        height: 60px;
-        width: 100%;
-      }
-
-      .waveform-line {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        stroke-dasharray: 0 16 0 16;
-        stroke-dashoffset: 0;
-        stroke-width: 1;
-        fill: none;
-        animation: waveform 2s linear infinite;
-      }
-
-      .waveform-line:nth-child(2) {
-        animation-delay: 0.5s;
-      }
-
-      @keyframes waveform {
-        0% {
-          stroke-dashoffset: 32;
-        }
-        100% {
-          stroke-dashoffset: 0;
-        }
-      }
-
-      .grid-bg {
-        background-image: linear-gradient(
-            rgba(99, 102, 241, 0.1) 1px,
-            transparent 1px
-          ),
-          linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
-        background-size: 20px 20px;
-      }
-
-      .ai-icon {
-        position: relative;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #6366f1, #ec4899);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .ai-icon::after {
-        content: "";
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
-        background: #0f172a;
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0% {
-          transform: scale(0.8);
-          opacity: 0.8;
-        }
-        50% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(0.8);
-          opacity: 0.8;
-        }
-      }
-
-      .btn-glow {
-        position: relative;
-        z-index: 1;
-        overflow: hidden;
-      }
-
-      .btn-glow::after {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(
-          45deg,
-          transparent,
-          rgba(255, 255, 255, 0.1),
-          transparent
-        );
-        transform: rotate(45deg);
-        animation: glow 3s linear infinite;
-        z-index: -1;
-      }
-
-      @keyframes glow {
-        0% {
-          transform: translateX(-100%) rotate(45deg);
-        }
-        100% {
-          transform: translateX(100%) rotate(45deg);
-        }
-      }
-    </style>
   </head>
   <body class="min-h-screen">
     <!-- Navigation -->
@@ -719,48 +314,9 @@
                   </div>
                   <div
                     id="audioVisualizer"
-                    class="audio-visualizer mb-4 h-16 bg-slate-900/50 rounded-lg p-2 border border-slate-700"
+                    class="mb-4 h-16 bg-slate-900/50 rounded-lg border border-slate-700 flex items-center justify-center"
                   >
-                    <!-- Audio bars will be added by JavaScript -->
-                    <svg
-                      width="100%"
-                      height="100%"
-                      viewBox="0 0 200 60"
-                      preserveAspectRatio="none"
-                    >
-                      <path
-                        class="waveform-line"
-                        d="M0,30 Q10,20 20,40 T40,20 T60,40 T80,20 T100,40 T120,20 T140,40 T160,20 T180,40 T200,20"
-                        stroke="url(#gradient1)"
-                      ></path>
-                      <path
-                        class="waveform-line"
-                        d="M0,30 Q10,10 20,30 T40,50 T60,30 T80,10 T100,30 T120,50 T140,30 T160,10 T180,30 T200,50"
-                        stroke="url(#gradient2)"
-                      ></path>
-                      <defs>
-                        <linearGradient
-                          id="gradient1"
-                          x1="0%"
-                          y1="0%"
-                          x2="100%"
-                          y2="0%"
-                        >
-                          <stop offset="0%" stop-color="#6366f1"></stop>
-                          <stop offset="100%" stop-color="#ec4899"></stop>
-                        </linearGradient>
-                        <linearGradient
-                          id="gradient2"
-                          x1="0%"
-                          y1="0%"
-                          x2="100%"
-                          y2="0%"
-                        >
-                          <stop offset="0%" stop-color="#ec4899"></stop>
-                          <stop offset="100%" stop-color="#6366f1"></stop>
-                        </linearGradient>
-                      </defs>
-                    </svg>
+                   
                   </div>
                   <div class="grid grid-cols-3 gap-2">
                     <div class="text-center">
@@ -808,8 +364,8 @@
             Three-Step AI Enhancement Process
           </h2>
           <p class="text-lg text-gray-300 max-w-2xl mx-auto">
-            Our advanced neural network processes your audio through multiple
-            stages to deliver crystal-clear results.
+            DeNoisify processes your audio through multiple
+            stages to deliver crystal clear audio results.
           </p>
         </div>
 
@@ -825,21 +381,9 @@
             </div>
             <h3 class="text-xl font-semibold text-white mb-3">Upload Audio</h3>
             <p class="text-gray-300 mb-4">
-              Simply upload your WAV audio file. Our system accepts files up to
-              50MB with support for various audio qualities.
+              Simply upload your WAV audio file up to
+              50MB .
             </p>
-            <div class="noise-wave">
-              <div class="audio-visualizer">
-                <div class="audio-bar" style="height: 20px"></div>
-                <div class="audio-bar" style="height: 35px"></div>
-                <div class="audio-bar" style="height: 15px"></div>
-                <div class="audio-bar" style="height: 40px"></div>
-                <div class="audio-bar" style="height: 25px"></div>
-                <div class="audio-bar" style="height: 30px"></div>
-                <div class="audio-bar" style="height: 18px"></div>
-                <div class="audio-bar" style="height: 45px"></div>
-              </div>
-            </div>
           </div>
 
           <!-- Step 2 -->
@@ -853,35 +397,9 @@
             </div>
             <h3 class="text-xl font-semibold text-white mb-3">AI Processing</h3>
             <p class="text-gray-300 mb-4">
-              Our WaveUNet neural network analyzes the audio waveform and
-              applies advanced noise reduction algorithms in real-time.
+              DeNoisify analyzes   and
+              applies  noise reduction algorithms .
             </p>
-            <div class="waveform">
-              <svg
-                width="100%"
-                height="60"
-                viewBox="0 0 200 60"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  class="waveform-line"
-                  d="M0,30 Q10,20 20,40 T40,20 T60,40 T80,20 T100,40 T120,20 T140,40 T160,20 T180,40 T200,20"
-                  stroke="url(#processingGradient)"
-                ></path>
-                <defs>
-                  <linearGradient
-                    id="processingGradient"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="0%"
-                  >
-                    <stop offset="0%" stop-color="#ec4899"></stop>
-                    <stop offset="100%" stop-color="#6366f1"></stop>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
           </div>
 
           <!-- Step 3 -->
@@ -897,21 +415,8 @@
               Download Results
             </h3>
             <p class="text-gray-300 mb-4">
-              Receive your enhanced audio file with noise removed and voice
-              clarity significantly improved.
+              Receive and download your enhanced audio file.
             </p>
-            <div class="noise-wave">
-              <div class="audio-visualizer">
-                <div class="audio-bar" style="height: 30px"></div>
-                <div class="audio-bar" style="height: 32px"></div>
-                <div class="audio-bar" style="height: 28px"></div>
-                <div class="audio-bar" style="height: 35px"></div>
-                <div class="audio-bar" style="height: 29px"></div>
-                <div class="audio-bar" style="height: 31px"></div>
-                <div class="audio-bar" style="height: 27px"></div>
-                <div class="audio-bar" style="height: 33px"></div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -930,7 +435,7 @@
     <footer class="bg-slate-900 py-12">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
-          <div class="text-2xl font-bold gradient-text mb-4">Denoisify</div>
+          <div class="text-2xl font-bold gradient-text mb-4">DeNoisify</div>
           <p class="text-gray-400 mb-6">
             AI-powered audio enhancement for crystal-clear results
           </p>
@@ -944,216 +449,18 @@
           </div>
           <div class="mt-8 pt-8 border-t border-slate-700">
             <p class="text-gray-500 text-sm">
-              © 2024 Denoisify. All rights reserved.
+              © 2024 DeNoisify. All rights reserved.
             </p>
           </div>
         </div>
       </div>
     </footer>
 
+    <!-- External JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Theme toggle functionality
-        const themeToggle = document.getElementById("themeToggle");
-        const darkIcon = document.getElementById("darkIcon");
-        const lightIcon = document.getElementById("lightIcon");
-
-        // Check for saved theme preference or default to dark
-        const savedTheme = localStorage.getItem("theme");
-        const systemPrefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)"
-        ).matches;
-        const currentTheme =
-          savedTheme || (systemPrefersDark ? "dark" : "light");
-
-        // Apply initial theme
-        if (currentTheme === "light") {
-          document.body.classList.add("light-theme");
-          darkIcon.classList.remove("hidden");
-          lightIcon.classList.add("hidden");
-        }
-
-        // Theme toggle click handler
-        themeToggle.addEventListener("click", function () {
-          const isLightMode = document.body.classList.contains("light-theme");
-
-          if (isLightMode) {
-            // Switch to dark mode
-            document.body.classList.remove("light-theme");
-            darkIcon.classList.add("hidden");
-            lightIcon.classList.remove("hidden");
-            localStorage.setItem("theme", "dark");
-          } else {
-            // Switch to light mode
-            document.body.classList.add("light-theme");
-            darkIcon.classList.remove("hidden");
-            lightIcon.classList.add("hidden");
-            localStorage.setItem("theme", "light");
-          }
-        });
-
-        // Mobile menu functionality
-        const mobileMenuButton = document.getElementById("mobileMenuButton");
-        const mobileMenu = document.getElementById("mobileMenu");
-
-        if (mobileMenuButton && mobileMenu) {
-          mobileMenuButton.onclick = () => {
-            mobileMenu.classList.toggle("hidden");
-          };
-        }
-
-        // User dropdown menu functionality
-        const userMenuButton = document.getElementById("userMenuButton");
-        const userDropdown = document.getElementById("userDropdown");
-
-        if (userMenuButton && userDropdown) {
-          userMenuButton.onclick = (e) => {
-            e.stopPropagation();
-            userDropdown.classList.toggle("hidden");
-          };
-
-          // Close dropdown when clicking outside
-          document.addEventListener("click", (e) => {
-            if (
-              !userMenuButton.contains(e.target) &&
-              !userDropdown.contains(e.target)
-            ) {
-              userDropdown.classList.add("hidden");
-            }
-          });
-        }
-
-        // Logout confirmation functions
-        window.showLogoutConfirmation = function () {
-          document.getElementById("logoutModal").classList.remove("hidden");
-          document.body.style.overflow = "hidden";
-        };
-
-        window.closeLogoutModal = function () {
-          document.getElementById("logoutModal").classList.add("hidden");
-          document.body.style.overflow = "auto";
-        };
-
-        window.confirmLogout = async function () {
-          try {
-            const csrfToken =
-              document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute("content") || getCookie("csrftoken");
-
-            const response = await fetch('{% url "denoiser:logout" %}', {
-              method: "POST",
-              headers: {
-                "X-CSRFToken": csrfToken,
-                "Content-Type": "application/json",
-              },
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-              // Show success message briefly
-              showLogoutSuccess(data.message);
-
-              // Redirect to home page after a short delay
-              setTimeout(() => {
-                window.location.href = "/";
-              }, 1500);
-            } else {
-              alert("Logout failed: " + data.message);
-              closeLogoutModal();
-            }
-          } catch (error) {
-            console.error("Logout error:", error);
-            alert("An error occurred during logout. Please try again.");
-            closeLogoutModal();
-          }
-        };
-
-        window.showLogoutSuccess = function (message) {
-          closeLogoutModal();
-
-          // Create and show success message
-          const successDiv = document.createElement("div");
-          successDiv.className =
-            "fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300";
-          successDiv.innerHTML = `
-            <div class="flex items-center">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              ${message}
-            </div>
-          `;
-
-          document.body.appendChild(successDiv);
-
-          // Animate in
-          setTimeout(() => {
-            successDiv.classList.remove("translate-x-full");
-          }, 100);
-
-          // Remove after delay
-          setTimeout(() => {
-            successDiv.remove();
-          }, 1400);
-        };
-
-        // Helper function to get CSRF cookie
-        function getCookie(name) {
-          let cookieValue = null;
-          if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-            for (let i = 0; i < cookies.length; i++) {
-              const cookie = cookies[i].trim();
-              if (cookie.substring(0, name.length + 1) === name + "=") {
-                cookieValue = decodeURIComponent(
-                  cookie.substring(name.length + 1)
-                );
-                break;
-              }
-            }
-          }
-          return cookieValue;
-        }
-
-        // Audio visualizer animation
-        const audioVisualizer = document.getElementById("audioVisualizer");
-        if (audioVisualizer) {
-          const bars = [];
-          for (let i = 0; i < 20; i++) {
-            const bar = document.createElement("div");
-            bar.className = "audio-bar";
-            bar.style.height = Math.random() * 40 + 10 + "px";
-            audioVisualizer.appendChild(bar);
-            bars.push(bar);
-          }
-
-          // Animate bars
-          setInterval(() => {
-            bars.forEach((bar) => {
-              bar.style.height = Math.random() * 40 + 10 + "px";
-            });
-          }, 200);
-        }
-
-        // Check for logout messages in URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const logoutSuccess = urlParams.get('logout_success');
-        const logoutError = urlParams.get('logout_error');
-        
-        if (logoutSuccess) {
-          // Show success message immediately
-          showLogoutSuccess(logoutSuccess);
-          // Clean up URL without reloading page
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (logoutError) {
-          // Show error message
-          alert(logoutError);
-          // Clean up URL without reloading page
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      });
+      // Set logout URL for the JavaScript module
+      window.logoutUrl = '{% url "denoiser:logout" %}';
     </script>
 
     <!-- Logout Confirmation Modal -->
