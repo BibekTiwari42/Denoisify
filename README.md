@@ -193,6 +193,8 @@ denoisify/
 - **Skip Connections**: Preserve high-frequency details
 - **Output**: Denoised audio waveform
 
+## Demo
+https://github.com/user-attachments/assets/adc02d0f-960e-408e-8295-4509670abee8
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
