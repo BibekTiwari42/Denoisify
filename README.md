@@ -38,8 +38,8 @@ tqdm>=4.62.0
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/denoisify.git
-   cd denoisify
+   git clone https://github.com/BibekTiwari42/Denoisify.git
+   cd Denoisify
    ```
 
 2. **Create virtual environment**
