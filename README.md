@@ -4,34 +4,11 @@ AN audio denoising system that combines WaveUNet neural network architecture wit
 
 ## Features
 
-- **Hybrid Denoising**: Combines WaveUNet architecture with SSBSE post-processing
-- **Multiple Processing Modes**:
-  - WaveUNet + SSBSE (recommended)
-  - SSBSE-only processing
+- **Hybrid Denoising**: Combines WaveUNet architecture with MMSE-STSA post-processing
 - **Web Interface**: Django-based web application for easy audio processing
 - **Batch Processing**: Support for processing multiple audio files
 - **Model Training**: Complete training pipeline with evaluation metrics
 - **GPU Support**: CUDA acceleration for faster processing
-
-## Architecture
-
-### Core Components
-
-1. **WaveUNet Model** (`model_training/model.py`)
-
-   - U-Net architecture adapted for 1D audio signals
-   - Encoder-decoder structure with skip connections
-   - Configurable depth and channel dimensions
-
-2. **SSBSE Post-Processing** (`model_training/postprocess.py`)
-
-   - Spectral Subtraction with Bispectral Spectral Enhancement
-   - Advanced noise reduction technique
-   - Can be used standalone or with WaveUNet
-
-3. **Django Web Interface** (`denoiser/`)
-   - User-friendly web interface
-   - File upload and download functionality - Real-time processing status
 
 ## Requirements
 
@@ -125,8 +102,6 @@ Data/
 
 4. **Select processing mode**:
 
-   - WaveUNet + SSBSE (recommended)
-
 5. **Download processed audio**
 
 ## Model Training
@@ -201,7 +176,6 @@ denoisify/
 │   ├── train.py                   # Training script
 │   ├── evaluate.py                # Evaluation script
 │   ├── dataset.py                 # Dataset loader
-│   ├── postprocess.py             # SSBSE post-processing
 │   └── checkpoints/               # Saved model weights
 ├── media/                         # Processed audio outputs
 ├── manage.py                      # Django management
@@ -218,13 +192,6 @@ denoisify/
 - **Decoder**: Upsampling with transposed convolutions
 - **Skip Connections**: Preserve high-frequency details
 - **Output**: Denoised audio waveform
-
-### SSBSE Post-Processing
-
-- **Spectral Analysis**: STFT-based frequency domain processing
-- **Bispectral Enhancement**: Phase information preservation
-- **Noise Estimation**: Adaptive noise floor estimation
-- **Spectral Subtraction**: Selective noise reduction
 
 ## License
 
