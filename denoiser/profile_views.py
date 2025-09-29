@@ -92,22 +92,23 @@ def audio_history_view(request):
 
 
 @login_required
-@require_http_methods(["DELETE"])
+@require_http_methods(["DELETE", "POST"])
 def delete_audio_upload(request, upload_id):
     """Delete an audio upload record and associated files"""
     try:
         upload = AudioUpload.objects.get(id=upload_id, user=request.user)
+        filename = upload.original_filename or "Untitled"
         
         # Delete associated files if they exist
         try:
-            if upload.input_file and os.path.exists(upload.input_file.path):
-                os.remove(upload.input_file.path)
+            if upload.original_audio_file and os.path.exists(upload.original_audio_file.path):
+                os.remove(upload.original_audio_file.path)
         except:
             pass
         
         try:
-            if upload.output_file and os.path.exists(upload.output_file.path):
-                os.remove(upload.output_file.path)
+            if upload.denoised_audio_file and os.path.exists(upload.denoised_audio_file.path):
+                os.remove(upload.denoised_audio_file.path)
         except:
             pass
         
@@ -116,7 +117,7 @@ def delete_audio_upload(request, upload_id):
         
         return JsonResponse({
             'success': True,
-            'message': 'Audio upload deleted successfully!'
+            'message': f'"{filename}" deleted successfully!'
         })
     except AudioUpload.DoesNotExist:
         return JsonResponse({
@@ -136,11 +137,11 @@ def download_audio_file(request, upload_id, file_type):
     try:
         upload = AudioUpload.objects.get(id=upload_id, user=request.user)
         
-        if file_type == 'original' and upload.input_file:
-            file_path = upload.input_file.path
+        if file_type == 'original' and upload.original_audio_file:
+            file_path = upload.original_audio_file.path
             filename = f"original_{upload.original_filename}"
-        elif file_type == 'processed' and upload.output_file:
-            file_path = upload.output_file.path
+        elif file_type == 'processed' and upload.denoised_audio_file:
+            file_path = upload.denoised_audio_file.path
             filename = f"denoised_{upload.original_filename}"
         else:
             return JsonResponse({

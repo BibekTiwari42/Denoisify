@@ -11,6 +11,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from .forms import AudioUploadForm
@@ -44,7 +45,7 @@ def process_audio_with_progress(input_path, audio_folder, processing_method, tas
         
         # Stage 3: Processing (this will update progress internally)
         progress.update_progress('denoising', get_stage_progress('denoising'), 
-                               f'Applying {processing_method} denoising...')
+                               'Processing audio...')
         
         # Set output path for denoising
         output_path = os.path.join(settings.MEDIA_ROOT, f"denoised_{os.path.basename(input_path)}")
@@ -148,7 +149,7 @@ def index(request):
         form = AudioUploadForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES['file']
-            processing_method = form.cleaned_data.get('processing_method', 'voice_preserving')
+            processing_method = 'waveunet_only'
             
             # Create unique filenames with timestamp
             timestamp = str(int(time.time()))
@@ -284,7 +285,7 @@ def audio_processor(request):
         if form.is_valid():
             try:
                 uploaded_file = request.FILES['file']
-                processing_method = form.cleaned_data.get('processing_method', 'voice_preserving')
+                processing_method = 'waveunet_only'
                 
                 # Generate unique task ID and filename
                 task_id = str(uuid.uuid4())
@@ -338,7 +339,32 @@ def audio_processor(request):
                         )
                     
                     print(f"Created AudioUpload record with ID: {audio_upload.id}")
-                
+                else:
+                    # For guest users, store upload info in session for later association
+                    guest_upload_info = {
+                        'task_id': task_id,
+                        'original_filename': uploaded_file.name,
+                        'file_size': uploaded_file.size,
+                        'input_path': input_path,
+                        'base_filename': base_filename,
+                        'processing_method': processing_method,
+                        'timestamp': timestamp
+                    }
+                    
+                    # Initialize or get existing guest uploads list
+                    guest_uploads = request.session.get('guest_uploads', [])
+                    if not isinstance(guest_uploads, list):
+                        guest_uploads = []
+                    
+                    guest_uploads.append(guest_upload_info)
+                    request.session['guest_uploads'] = guest_uploads
+                    request.session.modified = True
+                    print(f"Stored guest upload info in session for task: {task_id}")
+                    print(f"Total guest uploads in session: {len(guest_uploads)}")
+                    print(f"Guest upload details: {guest_upload_info}")
+                    print(f"Session key: {request.session.session_key}")
+                    print(f"Session data keys: {list(request.session.keys())}")
+
                 # Initialize progress tracker
                 progress_tracker = ProcessingProgress(task_id)
                 progress_tracker.update_progress('upload', 100, 'File uploaded and validated successfully')
@@ -369,13 +395,66 @@ def audio_processor(request):
     context['form'] = form
     return render(request, 'audio_processor.html', context)
 
+def test_audio_original(request, folder_name):
+    """Serve original audio files with authentication check for downloads only"""
+    # Check if this is a download request (vs inline playback)
+    is_download = request.GET.get('download', 'false').lower() == 'true'
+    
+    # Only require authentication for downloads, not for inline playback
+    if is_download and not request.user.is_authenticated:
+        # Store the current URL for redirect after login
+        request.session['download_requested'] = True
+        request.session['download_folder'] = folder_name
+        messages.info(request, 'Please log in to download your processed audio files.')
+        return redirect(f'/login/?next={request.get_full_path()}')
+    
+    # Find the original audio file in the folder
+    audio_folder = os.path.join(settings.MEDIA_ROOT, "audio_results", folder_name)
+    
+    if not os.path.exists(audio_folder):
+        return HttpResponse("Audio folder not found", status=404)
+    
+    # Get original input files (exclude postprocessed files)
+    input_files = [f for f in os.listdir(audio_folder) 
+                  if f.endswith('.wav') and not f.startswith('postprocessed_') and not f.startswith('denoised_')]
+    
+    if not input_files:
+        return HttpResponse("Original audio file not found", status=404)
+    
+    original_audio_path = os.path.join(audio_folder, input_files[0])
+    
+    if os.path.exists(original_audio_path):
+        response = FileResponse(open(original_audio_path, 'rb'), content_type='audio/wav')
+        if is_download:
+            response['Content-Disposition'] = 'attachment; filename="original_audio.wav"'
+        else:
+            response['Content-Disposition'] = 'inline; filename="original_audio.wav"'
+        return response
+    else:
+        return HttpResponse(f"Original audio file not found: {original_audio_path}", status=404)
+
+
 def test_audio(request, folder_name):
-    """Test view to serve audio files directly with proper MIME type"""
+    """Test view to serve audio files directly with proper MIME type - requires authentication for downloads only"""
+    # Check if this is a download request (vs inline playback)
+    is_download = request.GET.get('download', 'false').lower() == 'true'
+    
+    # Only require authentication for downloads, not for inline playback
+    if is_download and not request.user.is_authenticated:
+        # Store the current URL for redirect after login
+        request.session['download_requested'] = True
+        request.session['download_folder'] = folder_name
+        messages.info(request, 'Please log in to download your processed audio files.')
+        return redirect(f'/login/?next={request.get_full_path()}')
+    
     audio_path = os.path.join(settings.MEDIA_ROOT, "audio_results", folder_name, "postprocessed_output_mmse_stsa.wav")
     
     if os.path.exists(audio_path):
         response = FileResponse(open(audio_path, 'rb'), content_type='audio/wav')
-        response['Content-Disposition'] = 'inline; filename="processed_audio.wav"'
+        if is_download:
+            response['Content-Disposition'] = 'attachment; filename="processed_audio.wav"'
+        else:
+            response['Content-Disposition'] = 'inline; filename="processed_audio.wav"'
         return response
     else:
         return HttpResponse(f"Audio file not found: {audio_path}", status=404)
@@ -404,6 +483,22 @@ def progress_page(request, task_id):
         'start_time': time.strftime('%H:%M:%S')
     }
     return render(request, 'progress.html', context) 
+
+def debug_session(request):
+    """Debug view to check session data"""
+    session_data = {
+        'session_key': request.session.session_key,
+        'session_keys': list(request.session.keys()),
+        'is_authenticated': request.user.is_authenticated,
+        'username': request.user.username if request.user.is_authenticated else None,
+        'guest_uploads': request.session.get('guest_uploads', [])
+    }
+    
+    return JsonResponse({
+        'session_info': session_data,
+        'guest_upload_count': len(session_data['guest_uploads'])
+    })
+
 
 def results_page(request, folder_name):
     """Show results page with registration prompt"""
@@ -463,7 +558,8 @@ def results_page(request, folder_name):
         'output_size': output_size,
         'input_quality': input_quality,
         'output_quality': output_quality,
-        'processing_method': 'WaveUNet + Voice-Preserving MMSE-STSA'
+        'processing_method': 'WaveUNet + Voice-Preserving MMSE-STSA',
+        'request': request  # Add request to context for get_full_path
     }
     
     return render(request, 'results.html', context) 

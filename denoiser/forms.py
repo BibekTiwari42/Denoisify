@@ -33,15 +33,7 @@ class AudioUploadForm(forms.Form):
         })
     )
     
-    processing_method = forms.ChoiceField(
-        choices=PROCESSING_CHOICES,
-        initial='voice_preserving',
-        label="Processing Method",
-        help_text="Choose denoising strength vs voice quality balance",
-        widget=forms.Select(attrs={
-            'class': 'block w-full text-sm text-gray-300 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 p-3'
-        })
-    )
+
     
     def clean_file(self):
         uploaded_file = self.cleaned_data.get('file')
